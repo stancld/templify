@@ -284,6 +284,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         if (fieldId) {
           onFieldClick(fieldId);
         }
+      } else if (activeFieldId) {
+        onFieldClick(activeFieldId);
       }
     };
 
@@ -297,7 +299,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         element.removeEventListener('click', handleClick);
       }
     };
-  }, [onFieldClick]);
+  }, [onFieldClick, activeFieldId]);
 
   if (error) {
     return (

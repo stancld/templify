@@ -78,6 +78,23 @@ export const TemplateEditor: React.FC = () => {
     };
   }, [activeFieldId]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!activeFieldId) {return;}
+      
+      const target = e.target as HTMLElement;
+      const isInsideDocument = documentViewerRef.current?.contains(target);
+      const isInsideSidebar = target.closest('[data-field-card-id]');
+      
+      if (!isInsideDocument && !isInsideSidebar) {
+        setActiveFieldId(null);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [activeFieldId]);
+
   const handleTextSelected = (selection: TextSelection) => {
     setSelectedText(selection);
     setEditingField(null);
@@ -199,7 +216,15 @@ export const TemplateEditor: React.FC = () => {
 
       <div className="flex flex-1 overflow-hidden relative">
         <div ref={mainContentRef} className="flex-1 overflow-y-auto p-8">
-          <div ref={documentViewerRef} className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+          <div
+            ref={documentViewerRef}
+            className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8"
+            onClick={(e) => {
+              if (e.target === e.currentTarget && activeFieldId) {
+                setActiveFieldId(null);
+              }
+            }}
+          >
             <DocumentViewer
               docxBlob={template.originalDocx}
               fields={template.schema}
