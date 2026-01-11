@@ -1,15 +1,10 @@
 import { ImageResponse } from '@vercel/og';
 
-export const config = {
-  runtime: 'edge',
-};
-
-const fontData = fetch(
-  new URL('./Inter-Bold.ttf', import.meta.url)
-).then((res) => res.arrayBuffer());
+export const runtime = 'edge';
 
 export default async function handler() {
-  const imageResponse = new ImageResponse(
+  try {
+    return new ImageResponse(
     (
       <div
         style={{
@@ -172,16 +167,13 @@ export default async function handler() {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        {
-          name: 'Inter',
-          data: await fontData,
-          weight: 700,
-          style: 'normal',
-        },
-      ],
     }
-  );
-
-  return imageResponse;
+    );
+  } catch {
+    // WASM not supported in local vercel dev - return placeholder
+    return new Response('OG Image endpoint - deploy to Vercel to test', {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
+    });
+  }
 }
