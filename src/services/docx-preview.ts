@@ -109,3 +109,79 @@ export const convertDomRangeToCharPositions = (
     return null;
   }
 };
+
+interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export const extractTextFromBoundingBox = (
+  box: BoundingBox,
+  containerElement: HTMLElement,
+  plainText: string
+): { startPosition: number; endPosition: number; text: string } | null => {
+  try {
+    const containerRect = containerElement.getBoundingClientRect();
+    const scrollTop = containerElement.scrollTop;
+    const scrollLeft = containerElement.scrollLeft;
+    const positionMap = createPositionMap(containerElement);
+
+    const absBoxLeft = containerRect.left + box.x - scrollLeft;
+    const absBoxRight = containerRect.left + box.x + box.width - scrollLeft;
+    const absBoxTop = containerRect.top + box.y - scrollTop;
+    const absBoxBottom = containerRect.top + box.y + box.height - scrollTop;
+
+    let minPosition = Infinity;
+    let maxPosition = -1;
+
+    for (const entry of positionMap) {
+      const textNode = entry.node as Text;
+      const text = textNode.textContent || '';
+
+      for (let i = 0; i < text.length; i++) {
+        const range = document.createRange();
+        range.setStart(textNode, i);
+        range.setEnd(textNode, i + 1);
+        const charRect = range.getBoundingClientRect();
+
+        const charCenterX = (charRect.left + charRect.right) / 2;
+        const charCenterY = (charRect.top + charRect.bottom) / 2;
+
+        const centerInBox =
+          charCenterX >= absBoxLeft &&
+          charCenterX <= absBoxRight &&
+          charCenterY >= absBoxTop &&
+          charCenterY <= absBoxBottom;
+
+        if (centerInBox) {
+          const charPosition = entry.startOffset + i;
+          minPosition = Math.min(minPosition, charPosition);
+          maxPosition = Math.max(maxPosition, charPosition + 1);
+        }
+      }
+    }
+
+    if (minPosition === Infinity || maxPosition === -1) {
+      return null;
+    }
+
+    const startPosition = minPosition;
+    const endPosition = maxPosition;
+    const selectedText = plainText.substring(startPosition, endPosition);
+
+    if (!selectedText) {
+      return null;
+    }
+
+    return {
+      startPosition,
+      endPosition,
+      text: selectedText,
+    };
+  } catch (error) {
+    console.error('Error extracting text from bounding box:', error);
+    return null;
+  }
+};

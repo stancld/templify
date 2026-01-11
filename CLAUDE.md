@@ -88,7 +88,7 @@ interface DataRow {
 - [ ] Migrate from localStorage to API calls
 
 ### Iteration 3: Enhanced UX
-- [ ] Code-splitting to reduce bundle size (currently 520KB)
+- [x] Code-splitting to reduce bundle size (currently 520KB)
 - [ ] Undo/redo for field definitions
 - [ ] Field reordering via drag-and-drop
 - [ ] Template duplication

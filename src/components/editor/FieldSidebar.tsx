@@ -41,7 +41,7 @@ export const FieldSidebar: React.FC<FieldSidebarProps> = ({
             <p className="text-neutral-gray text-sm leading-relaxed">
               No fields defined yet.
               <br />
-              Select text in the document to create a field.
+              Select text in the document to create a field, or hold <kbd className="px-1.5 py-0.5 bg-neutral-light rounded text-xs font-mono">⌘</kbd> and draw a box.
             </p>
           </div>
         ) : (

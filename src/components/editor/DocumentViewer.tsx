@@ -5,7 +5,9 @@ import {
   extractPlainTextFromContainer,
   convertDomRangeToCharPositions,
   createPositionMap,
+  extractTextFromBoundingBox,
 } from '../../services/docx-preview';
+import { BoundingBoxDrawer } from './BoundingBoxDrawer';
 
 export interface TextSelection {
   startPosition: number;
@@ -62,6 +64,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const styleContainerRef = useRef<HTMLDivElement>(null);
   const [isRendered, setIsRendered] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDrawMode, setIsDrawMode] = useState(false);
   const [selectionError, setSelectionError] = useState<string | null>(null);
   const plainTextRef = useRef<string>('');
 
@@ -94,6 +97,30 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
     void renderDocument();
   }, [docxBlob, onPlainTextExtracted]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        setIsDrawMode(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.metaKey && !e.ctrlKey) {
+        setIsDrawMode(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', () => setIsDrawMode(false));
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', () => setIsDrawMode(false));
+    };
+  }, []);
 
   const applyFieldHighlights = useCallback(() => {
     if (!containerRef.current || !isRendered || fields.length === 0) {return;}
@@ -215,6 +242,38 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     }
   }, [fields, onTextSelected]);
 
+  const handleBoundingBoxDrawn = useCallback(
+    (box: { x: number; y: number; width: number; height: number }) => {
+      if (!containerRef.current) {return;}
+      setSelectionError(null);
+
+      const result = extractTextFromBoundingBox(box, containerRef.current, plainTextRef.current);
+      if (!result) {
+        setSelectionError('No text found in selected area');
+        return;
+      }
+
+      const { startPosition, endPosition, text } = result;
+
+      if (text.length > 500) {
+        setSelectionError('Selected text is too long (max 500 characters)');
+        return;
+      }
+
+      if (hasOverlap(startPosition, endPosition, fields)) {
+        setSelectionError('Selection overlaps with existing field');
+        return;
+      }
+
+      onTextSelected({
+        startPosition,
+        endPosition,
+        placeholder: text,
+      });
+    },
+    [fields, onTextSelected]
+  );
+
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -249,7 +308,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   }
 
   return (
-    <div>
+    <div className="relative">
       {selectionError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
           {selectionError}
@@ -261,11 +320,17 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       <div
         ref={containerRef}
         className="docx-container"
-        onMouseUp={handleSelection}
+        onMouseUp={!isDrawMode ? handleSelection : undefined}
         style={{
-          userSelect: 'text',
-          cursor: 'text',
+          userSelect: isDrawMode ? 'none' : 'text',
+          cursor: isDrawMode ? 'crosshair' : 'text',
         }}
+      />
+
+      <BoundingBoxDrawer
+        enabled={isDrawMode && isRendered}
+        containerRef={containerRef}
+        onBoxDrawn={handleBoundingBoxDrawn}
       />
 
       {!isRendered && !error && (
