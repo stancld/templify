@@ -9,6 +9,8 @@ import {
   extractTextFromBoundingBox,
 } from '../../services/docx-preview';
 import { BoundingBoxDrawer } from './BoundingBoxDrawer';
+import { getFieldColor } from '../../utils/fieldColors';
+import { unwrapAllElements } from '../../utils/dom';
 
 export interface TextSelection {
   startPosition: number;
@@ -24,28 +26,6 @@ interface DocumentViewerProps {
   onPlainTextExtracted: (plainText: string) => void;
   activeFieldId: string | null;
 }
-
-const getFieldColor = (
-  fieldType: string,
-  isActive: boolean
-): { bg: string; border: string } => {
-  const colors = {
-    text: {
-      bg: isActive ? 'rgba(63, 138, 226, 0.3)' : 'rgba(63, 138, 226, 0.2)',
-      border: '#3F8AE2',
-    },
-    number: {
-      bg: isActive ? 'rgba(0, 235, 130, 0.3)' : 'rgba(0, 235, 130, 0.2)',
-      border: '#00eb82',
-    },
-    date: {
-      bg: isActive ? 'rgba(174, 51, 236, 0.3)' : 'rgba(174, 51, 236, 0.2)',
-      border: '#AE33EC',
-    },
-  };
-
-  return colors[fieldType as keyof typeof colors] || colors.text;
-};
 
 const hasOverlap = (start: number, end: number, fields: Field[]): boolean => {
   return fields.some(
@@ -135,16 +115,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const applyFieldHighlights = useCallback(() => {
     if (!containerRef.current || !isRendered || fields.length === 0) {return;}
 
-    const existingHighlights = containerRef.current.querySelectorAll('.field-highlight');
-    existingHighlights.forEach((el) => {
-      const parent = el.parentNode;
-      if (parent) {
-        while (el.firstChild) {
-          parent.insertBefore(el.firstChild, el);
-        }
-        parent.removeChild(el);
-      }
-    });
+    unwrapAllElements(containerRef.current, '.field-highlight');
 
     const positionMap = createPositionMap(containerRef.current);
 

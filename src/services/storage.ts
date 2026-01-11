@@ -1,7 +1,5 @@
 import { Template } from '../types';
-
-const STORAGE_KEY = 'templify_templates';
-const MAX_STORAGE_SIZE = 5 * 1024 * 1024;
+import { STORAGE_KEYS, STORAGE_LIMITS } from '../config/constants';
 
 export const blobToBase64 = (blob: Blob): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -61,15 +59,15 @@ export const saveTemplateWithBlob = async (template: Template): Promise<void> =>
 
     const serialized = JSON.stringify(templates);
 
-    if (serialized.length > MAX_STORAGE_SIZE * 0.8) {
+    if (serialized.length > STORAGE_LIMITS.MAX_SIZE * STORAGE_LIMITS.WARNING_THRESHOLD) {
       console.warn('Storage is at 80% capacity. Consider removing old templates.');
     }
 
-    if (serialized.length > MAX_STORAGE_SIZE) {
+    if (serialized.length > STORAGE_LIMITS.MAX_SIZE) {
       throw new Error('Storage quota exceeded. Please delete some templates.');
     }
 
-    localStorage.setItem(STORAGE_KEY, serialized);
+    localStorage.setItem(STORAGE_KEYS.TEMPLATES, serialized);
   } catch (error) {
     console.error('Error saving template:', error);
     throw error;
@@ -108,7 +106,7 @@ export const loadTemplateWithBlob = (id: string): Template | null => {
 
 export const loadAllTemplates = (): SerializableTemplate[] => {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
+    const data = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
 
     if (!data) {
       return [];
@@ -125,7 +123,7 @@ export const deleteTemplate = (id: string): void => {
   try {
     const templates = loadAllTemplates();
     const filtered = templates.filter((t) => t.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+    localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(filtered));
   } catch (error) {
     console.error('Error deleting template:', error);
     throw error;
@@ -136,9 +134,9 @@ export const getStorageUsage = (): {
   used: number;
   percentage: number;
 } => {
-  const data = localStorage.getItem(STORAGE_KEY);
+  const data = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
   const used = data ? data.length : 0;
-  const percentage = (used / MAX_STORAGE_SIZE) * 100;
+  const percentage = (used / STORAGE_LIMITS.MAX_SIZE) * 100;
 
   return { used, percentage };
 };

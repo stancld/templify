@@ -13,20 +13,8 @@ import { ReviewFieldSidebar } from './ReviewFieldSidebar';
 import { FieldConnector } from '../editor/FieldConnector';
 import { useDocumentGenerator } from '../../hooks/useDocumentGenerator';
 import { loadTemplateWithBlob } from '../../services/storage';
-import { DataRow } from '../../types';
-
-const DATA_ROWS_KEY = 'templify_data_rows';
-
-const loadDataRows = (templateId: string): DataRow[] => {
-  try {
-    const data = localStorage.getItem(DATA_ROWS_KEY);
-    if (!data) {return [];}
-    const stored = JSON.parse(data) as Record<string, DataRow[]>;
-    return stored[templateId] || [];
-  } catch {
-    return [];
-  }
-};
+import { getDataRowsForTemplate } from '../../services/data-rows';
+import { pluralize } from '../../utils/text';
 
 export const ReviewScreen: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
@@ -44,7 +32,7 @@ export const ReviewScreen: React.FC = () => {
     if (!loaded) {
       return { template: null, dataRows: [], error: 'Template not found' };
     }
-    const rows = loadDataRows(templateId);
+    const rows = getDataRowsForTemplate(templateId);
     if (rows.length === 0) {
       return { template: loaded, dataRows: [], error: 'No data rows found' };
     }
@@ -170,7 +158,7 @@ export const ReviewScreen: React.FC = () => {
               <div className="flex items-center gap-2 mt-0.5">
                 <FileCheck size={14} className="text-green-500" />
                 <p className="text-sm text-neutral-gray">
-                  {documents.length} document{documents.length !== 1 ? 's' : ''} generated
+                  {documents.length} {pluralize(documents.length, 'document')} generated
                 </p>
               </div>
             </div>

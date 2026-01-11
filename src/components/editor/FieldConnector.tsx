@@ -1,5 +1,6 @@
 import React from 'react';
 import { Field } from '../../types';
+import { getFieldBorderColor } from '../../utils/fieldColors';
 
 interface FieldConnectorProps {
   fieldCardRect: DOMRect | null;
@@ -7,15 +8,6 @@ interface FieldConnectorProps {
   activeFieldId: string | null;
   fields: Field[];
 }
-
-const getFieldColor = (type: string): string => {
-  const colors = {
-    text: '#3F8AE2',
-    number: '#00eb82',
-    date: '#AE33EC',
-  };
-  return colors[type as keyof typeof colors] || colors.text;
-};
 
 export const FieldConnector: React.FC<FieldConnectorProps> = ({
   fieldCardRect,
@@ -28,7 +20,7 @@ export const FieldConnector: React.FC<FieldConnectorProps> = ({
   }
 
   const activeField = fields.find((f) => f.id === activeFieldId);
-  const color = activeField ? getFieldColor(activeField.type) : '#3F8AE2';
+  const color = activeField ? getFieldBorderColor(activeField.type) : '#3F8AE2';
 
   const startX = highlightRect.right;
   const startY = highlightRect.top + highlightRect.height / 2;

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Field, DataRow } from '../../types';
+import { getFieldTypeClasses } from '../../utils/fieldColors';
 
 interface SpreadsheetGridProps {
   fields: Field[];
@@ -122,15 +123,7 @@ export const SpreadsheetGrid: React.FC<SpreadsheetGridProps> = ({
                 >
                   <div className="flex items-center gap-2">
                     <span className="truncate">{field.name}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                        field.type === 'text'
-                          ? 'bg-blue-100 text-blue-600'
-                          : field.type === 'number'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-purple-100 text-purple-600'
-                      }`}
-                    >
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${getFieldTypeClasses(field.type)}`}>
                       {field.type}
                     </span>
                   </div>

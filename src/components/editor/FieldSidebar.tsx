@@ -2,6 +2,7 @@ import React from 'react';
 import { Layers } from 'lucide-react';
 import { Field } from '../../types';
 import { FieldCard } from './FieldCard';
+import { pluralize } from '../../utils/text';
 
 interface FieldSidebarProps {
   fields: Field[];
@@ -28,7 +29,7 @@ export const FieldSidebar: React.FC<FieldSidebarProps> = ({
           <h2 className="text-xl font-bold text-neutral-dark">Fields</h2>
         </div>
         <p className="text-sm text-neutral-gray">
-          {fields.length} field{fields.length !== 1 ? 's' : ''} defined
+          {fields.length} {pluralize(fields.length, 'field')} defined
         </p>
       </div>
 

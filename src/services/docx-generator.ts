@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { Template, DataRow, GeneratedDocument, Field } from '../types';
+import { generateId } from '../utils/id';
 
 export async function generateDocument(
   template: Template,
@@ -26,7 +27,7 @@ export async function generateDocument(
   });
 
   return {
-    id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: generateId('doc'),
     templateId: template.id,
     dataRowId: dataRow.id,
     docxBlob: blob,

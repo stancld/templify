@@ -1,31 +1,11 @@
 import { useState, useCallback, useMemo } from 'react';
 import { DataRow, Field } from '../types';
-
-const DATA_ROWS_KEY = 'templify_data_rows';
-
-interface StoredDataRows {
-  [templateId: string]: DataRow[];
-}
-
-const loadStoredDataRows = (): StoredDataRows => {
-  try {
-    const data = localStorage.getItem(DATA_ROWS_KEY);
-    if (!data) {
-      return {};
-    }
-    return JSON.parse(data) as StoredDataRows;
-  } catch {
-    return {};
-  }
-};
-
-const saveStoredDataRows = (dataRows: StoredDataRows): void => {
-  localStorage.setItem(DATA_ROWS_KEY, JSON.stringify(dataRows));
-};
+import { generateId } from '../utils/id';
+import { loadAllDataRows, saveDataRows, matchFieldValue } from '../services/data-rows';
 
 export const useDataRows = (templateId: string, fields: Field[]) => {
   const initialRows = useMemo(() => {
-    const stored = loadStoredDataRows();
+    const stored = loadAllDataRows();
     return stored[templateId] || [];
   }, [templateId]);
 
@@ -33,9 +13,9 @@ export const useDataRows = (templateId: string, fields: Field[]) => {
 
   const saveRows = useCallback(
     (newRows: DataRow[]) => {
-      const stored = loadStoredDataRows();
+      const stored = loadAllDataRows();
       stored[templateId] = newRows;
-      saveStoredDataRows(stored);
+      saveDataRows(stored);
       setRows(newRows);
     },
     [templateId]
@@ -43,7 +23,7 @@ export const useDataRows = (templateId: string, fields: Field[]) => {
 
   const addRow = useCallback(() => {
     const newRow: DataRow = {
-      id: `row_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: generateId('row'),
       templateId,
       values: fields.reduce(
         (acc, field) => {
@@ -81,21 +61,13 @@ export const useDataRows = (templateId: string, fields: Field[]) => {
 
   const importRows = useCallback(
     (data: Record<string, string>[]) => {
-      const newRows: DataRow[] = data.map((item) => {
-        const values: Record<string, string> = {};
-        fields.forEach((field) => {
-          const matchingKey = Object.keys(item).find(
-            (key) => key.toLowerCase().trim() === field.name.toLowerCase().trim()
-          );
-          values[field.id] = matchingKey ? item[matchingKey] : '';
-        });
-
-        return {
-          id: `row_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          templateId,
-          values,
-        };
-      });
+      const newRows: DataRow[] = data.map((item) => ({
+        id: generateId('row'),
+        templateId,
+        values: Object.fromEntries(
+          fields.map((field) => [field.id, matchFieldValue(item, field.name)])
+        ),
+      }));
 
       saveRows([...rows, ...newRows]);
       return newRows.length;

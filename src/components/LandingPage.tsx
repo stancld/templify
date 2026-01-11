@@ -6,6 +6,8 @@ import { useTemplates } from '../hooks/useTemplates';
 import { Sparkles, Zap, FileCheck, Linkedin, Twitter, Github } from 'lucide-react';
 import { Template } from '../types';
 import { saveTemplateWithBlob } from '../services/storage';
+import { generateId } from '../utils/id';
+import { pluralize } from '../utils/text';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,7 +21,7 @@ export const LandingPage: React.FC = () => {
 
     try {
       const newTemplate: Template = {
-        id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: generateId('template'),
         name: file.name.replace('.docx', ''),
         originalDocx: file,
         htmlContent: '',
@@ -106,7 +108,7 @@ export const LandingPage: React.FC = () => {
                     Your Templates
                   </h2>
                   <p className="text-neutral-gray">
-                    {templates.length} template{templates.length !== 1 ? 's' : ''} ready to use
+                    {templates.length} {pluralize(templates.length, 'template')} ready to use
                   </p>
                 </div>
               </div>

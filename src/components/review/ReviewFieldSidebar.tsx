@@ -1,40 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  FileText,
-  ChevronLeft,
-  ChevronRight,
-  Type,
-  Hash,
-  Calendar,
-} from 'lucide-react';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Field, DataRow } from '../../types';
-
-const fieldTypeIcons = {
-  text: Type,
-  number: Hash,
-  date: Calendar,
-};
-
-const fieldTypeColors = {
-  text: {
-    bg: 'bg-blue-100',
-    text: 'text-blue-600',
-    border: 'border-blue-300',
-    activeBorder: 'border-blue-500',
-  },
-  number: {
-    bg: 'bg-green-100',
-    text: 'text-green-600',
-    border: 'border-green-300',
-    activeBorder: 'border-green-500',
-  },
-  date: {
-    bg: 'bg-purple-100',
-    text: 'text-purple-600',
-    border: 'border-purple-300',
-    activeBorder: 'border-purple-500',
-  },
-};
+import { getFieldIconComponent } from '../../utils/fieldIcons';
+import { getFieldCardClasses } from '../../utils/fieldColors';
+import { pluralize } from '../../utils/text';
+import { useScrollResize } from '../../hooks/useScrollResize';
 
 interface ReviewFieldSidebarProps {
   fields: Field[];
@@ -72,24 +42,13 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
   }, [activeFieldId, onFieldCardRectChange]);
 
   // Update field card rect on scroll to keep connector line anchored
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !activeFieldId) {return;}
+  const updateCardRect = useCallback(() => {
+    if (activeCardRef.current) {
+      onFieldCardRectChange(activeCardRef.current.getBoundingClientRect());
+    }
+  }, [onFieldCardRectChange]);
 
-    const updateCardRect = () => {
-      if (activeCardRef.current) {
-        onFieldCardRectChange(activeCardRef.current.getBoundingClientRect());
-      }
-    };
-
-    container.addEventListener('scroll', updateCardRect);
-    window.addEventListener('resize', updateCardRect);
-
-    return () => {
-      container.removeEventListener('scroll', updateCardRect);
-      window.removeEventListener('resize', updateCardRect);
-    };
-  }, [activeFieldId, onFieldCardRectChange]);
+  useScrollResize(scrollContainerRef, updateCardRect, !!activeFieldId);
 
   return (
     <div className="w-80 bg-white border-l border-neutral-gray/20 flex flex-col h-full">
@@ -129,7 +88,7 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
           <div>
             <h2 className="text-lg font-bold text-neutral-dark">Field Values</h2>
             <p className="text-xs text-neutral-gray">
-              {fields.length} field{fields.length !== 1 ? 's' : ''} - click to locate
+              {fields.length} {pluralize(fields.length, 'field')} - click to locate
             </p>
           </div>
         </div>
@@ -150,8 +109,8 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
           <div className="space-y-3">
             {fields.map((field) => {
               const value = dataRow?.values[field.id] || '';
-              const Icon = fieldTypeIcons[field.type];
-              const colors = fieldTypeColors[field.type];
+              const Icon = getFieldIconComponent(field.type);
+              const colors = getFieldCardClasses(field.type);
               const isActive = field.id === activeFieldId;
 
               return (
@@ -162,8 +121,7 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
                   className={`
                     bg-white border-2 rounded-lg p-3 cursor-pointer transition-all
                     ${isActive ? colors.activeBorder : 'border-neutral-gray/20'}
-                    ${isActive ? 'shadow-md ring-2 ring-offset-1' : 'hover:shadow-sm hover:border-neutral-gray/40'}
-                    ${isActive ? (field.type === 'text' ? 'ring-blue-200' : field.type === 'number' ? 'ring-green-200' : 'ring-purple-200') : ''}
+                    ${isActive ? `shadow-md ring-2 ring-offset-1 ${colors.ring}` : 'hover:shadow-sm hover:border-neutral-gray/40'}
                   `}
                 >
                   <div className="flex items-center gap-2 mb-2">

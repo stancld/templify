@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Template, Field } from '../types';
 import { loadTemplateWithBlob, saveTemplateWithBlob } from '../services/storage';
+import { generateId } from '../utils/id';
 
 export const useTemplateEditor = (templateId: string) => {
   const [template, setTemplate] = useState<Template | null>(null);
@@ -57,7 +58,7 @@ export const useTemplateEditor = (templateId: string) => {
 
     const newField: Field = {
       ...fieldData,
-      id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: generateId('field'),
     };
 
     const updatedTemplate = {

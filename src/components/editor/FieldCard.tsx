@@ -1,6 +1,8 @@
 import React from 'react';
-import { Edit, Trash2, Type, Hash, Calendar } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { Field } from '../../types';
+import { getFieldIcon } from '../../utils/fieldIcons';
+import { getFieldBorderColor } from '../../utils/fieldColors';
 
 interface FieldCardProps {
   field: Field;
@@ -10,26 +12,6 @@ interface FieldCardProps {
   onDelete: () => void;
 }
 
-const getFieldIcon = (type: string) => {
-  switch (type) {
-    case 'number':
-      return <Hash size={16} />;
-    case 'date':
-      return <Calendar size={16} />;
-    default:
-      return <Type size={16} />;
-  }
-};
-
-const getFieldColor = (type: string): string => {
-  const colors = {
-    text: '#3F8AE2',
-    number: '#00eb82',
-    date: '#AE33EC',
-  };
-  return colors[type as keyof typeof colors] || colors.text;
-};
-
 export const FieldCard: React.FC<FieldCardProps> = ({
   field,
   isActive,
@@ -37,7 +19,7 @@ export const FieldCard: React.FC<FieldCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const fieldColor = getFieldColor(field.type);
+  const fieldColor = getFieldBorderColor(field.type);
 
   return (
     <div

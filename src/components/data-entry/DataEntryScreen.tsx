@@ -5,6 +5,7 @@ import { SpreadsheetGrid } from './SpreadsheetGrid';
 import { ImportDialog } from './ImportDialog';
 import { useDataRows } from '../../hooks/useDataRows';
 import { loadTemplateWithBlob } from '../../services/storage';
+import { pluralize } from '../../utils/text';
 
 export const DataEntryScreen: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
@@ -76,7 +77,7 @@ export const DataEntryScreen: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-neutral-dark">{template.name}</h1>
               <p className="text-sm text-neutral-gray">
-                Enter data for {template.schema.length} field{template.schema.length !== 1 ? 's' : ''}
+                Enter data for {template.schema.length} {pluralize(template.schema.length, 'field')}
               </p>
             </div>
           </div>
@@ -116,7 +117,7 @@ export const DataEntryScreen: React.FC = () => {
             <div>
               <h2 className="text-lg font-semibold text-neutral-dark">Data Entries</h2>
               <p className="text-sm text-neutral-gray">
-                {rows.length} row{rows.length !== 1 ? 's' : ''} •{' '}
+                {rows.length} {pluralize(rows.length, 'row')} •{' '}
                 {rows.length === 0
                   ? 'Add data manually or import from CSV'
                   : 'Click cells to edit, use Tab/Enter to navigate'}

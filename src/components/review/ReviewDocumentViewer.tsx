@@ -1,6 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Field, DataRow } from '../../types';
 import { renderDocxPreview, createPositionMap } from '../../services/docx-preview';
+import { getFieldColor } from '../../utils/fieldColors';
+import { unwrapAllElements } from '../../utils/dom';
+import { useScrollResize } from '../../hooks/useScrollResize';
 
 interface ReviewDocumentViewerProps {
   docxBlob: Blob;
@@ -10,28 +13,6 @@ interface ReviewDocumentViewerProps {
   onFieldClick: (fieldId: string | null) => void;
   onHighlightRectChange: (rect: DOMRect | null) => void;
 }
-
-const getFieldColor = (
-  fieldType: string,
-  isActive: boolean
-): { bg: string; border: string } => {
-  const colors = {
-    text: {
-      bg: isActive ? 'rgba(63, 138, 226, 0.35)' : 'rgba(63, 138, 226, 0.2)',
-      border: '#3F8AE2',
-    },
-    number: {
-      bg: isActive ? 'rgba(0, 235, 130, 0.35)' : 'rgba(0, 235, 130, 0.2)',
-      border: '#00eb82',
-    },
-    date: {
-      bg: isActive ? 'rgba(174, 51, 236, 0.35)' : 'rgba(174, 51, 236, 0.2)',
-      border: '#AE33EC',
-    },
-  };
-
-  return colors[fieldType as keyof typeof colors] || colors.text;
-};
 
 export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
   docxBlob,
@@ -83,17 +64,7 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
   const applyFieldHighlights = useCallback(() => {
     if (!containerRef.current || !isRendered || !dataRow) {return;}
 
-    // Remove existing highlights
-    const existingHighlights = containerRef.current.querySelectorAll('.field-value-highlight');
-    existingHighlights.forEach((el) => {
-      const parent = el.parentNode;
-      if (parent) {
-        while (el.firstChild) {
-          parent.insertBefore(el.firstChild, el);
-        }
-        parent.removeChild(el);
-      }
-    });
+    unwrapAllElements(containerRef.current, '.field-value-highlight');
 
     const positionMap = createPositionMap(containerRef.current);
     const plainText = plainTextRef.current;
@@ -214,27 +185,19 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
   }, [activeFieldId]);
 
   // Update highlight rect on scroll to keep connector line anchored
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !activeFieldId) {return;}
-
-    const updateHighlightRect = () => {
-      const activeHighlight = container.querySelector(
-        `[data-field-id="${activeFieldId}"]`
-      );
-      if (activeHighlight) {
-        onHighlightRectChange(activeHighlight.getBoundingClientRect());
-      }
-    };
-
-    container.addEventListener('scroll', updateHighlightRect);
-    window.addEventListener('resize', updateHighlightRect);
-
-    return () => {
-      container.removeEventListener('scroll', updateHighlightRect);
-      window.removeEventListener('resize', updateHighlightRect);
-    };
+  const updateHighlightRect = useCallback(() => {
+    if (!activeFieldId || !containerRef.current) {
+      return;
+    }
+    const activeHighlight = containerRef.current.querySelector(
+      `[data-field-id="${activeFieldId}"]`
+    );
+    if (activeHighlight) {
+      onHighlightRectChange(activeHighlight.getBoundingClientRect());
+    }
   }, [activeFieldId, onHighlightRectChange]);
+
+  useScrollResize(containerRef, updateHighlightRect, !!activeFieldId);
 
   if (error) {
     return (

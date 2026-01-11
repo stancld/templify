@@ -7,6 +7,7 @@ import { FieldSidebar } from './FieldSidebar';
 import { FieldDefinitionModal } from './FieldDefinitionModal';
 import { FieldConnector } from './FieldConnector';
 import { Field } from '../../types';
+import { pluralize } from '../../utils/text';
 
 export const TemplateEditor: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
@@ -192,7 +193,7 @@ export const TemplateEditor: React.FC = () => {
                 {template.name}
               </h1>
               <p className="text-sm text-neutral-gray">
-                {template.schema.length} field{template.schema.length !== 1 ? 's' : ''} defined
+                {template.schema.length} {pluralize(template.schema.length, 'field')} defined
               </p>
             </div>
           </div>
