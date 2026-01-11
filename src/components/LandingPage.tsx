@@ -57,26 +57,26 @@ export const LandingPage: React.FC = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="gradient-text">Automate</span> your document workflow
+              <span className="gradient-text">Fill templates</span> in bulk
             </h1>
             <p className="text-xl text-neutral-gray max-w-3xl mx-auto mb-8">
-              Transform your template documents into powerful automation tools.
-              Upload, define fields, and generate hundreds of personalized documents in minutes.
+              Upload a Word doc, highlight fields, fill a spreadsheet, download filled documents.
+              No account needed. Your files stay in your browser.
             </p>
 
             {/* Feature Pills */}
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <Zap size={18} className="text-accent-green" />
-                <span className="text-sm font-medium">Lightning Fast</span>
+                <span className="text-sm font-medium">No Sign-up</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <Sparkles size={18} className="text-primary" />
-                <span className="text-sm font-medium">Smart Templates</span>
+                <span className="text-sm font-medium">Works Offline</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <FileCheck size={18} className="text-accent-purple" />
-                <span className="text-sm font-medium">Batch Generation</span>
+                <span className="text-sm font-medium">100% Private</span>
               </div>
             </div>
           </div>

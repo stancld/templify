@@ -1,15 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  Package,
   Loader2,
+  FileCheck,
+  Download,
+  Package,
 } from 'lucide-react';
-import { DocumentPreview } from './DocumentPreview';
+import { ReviewDocumentViewer } from './ReviewDocumentViewer';
+import { ReviewFieldSidebar } from './ReviewFieldSidebar';
+import { FieldConnector } from '../editor/FieldConnector';
 import { useDocumentGenerator } from '../../hooks/useDocumentGenerator';
 import { loadTemplateWithBlob } from '../../services/storage';
 import { DataRow } from '../../types';
@@ -31,6 +32,9 @@ export const ReviewScreen: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
+  const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
+  const [fieldCardRect, setFieldCardRect] = useState<DOMRect | null>(null);
 
   const { template, dataRows, error: loadError } = useMemo(() => {
     if (!templateId) {
@@ -61,10 +65,12 @@ export const ReviewScreen: React.FC = () => {
   };
 
   const handlePrevious = () => {
+    setActiveFieldId(null);
     setCurrentIndex((prev) => Math.max(0, prev - 1));
   };
 
   const handleNext = () => {
+    setActiveFieldId(null);
     setCurrentIndex((prev) => Math.min(documents.length - 1, prev + 1));
   };
 
@@ -80,6 +86,22 @@ export const ReviewScreen: React.FC = () => {
     if (!template) {return;}
     await downloadAll(template, dataRows);
   };
+
+  const handleFieldClick = useCallback((fieldId: string | null) => {
+    setActiveFieldId((prev) => (prev === fieldId ? null : fieldId));
+  }, []);
+
+  const handleSidebarFieldClick = useCallback((fieldId: string) => {
+    setActiveFieldId((prev) => (prev === fieldId ? null : fieldId));
+  }, []);
+
+  const handleHighlightRectChange = useCallback((rect: DOMRect | null) => {
+    setHighlightRect(rect);
+  }, []);
+
+  const handleFieldCardRectChange = useCallback((rect: DOMRect | null) => {
+    setFieldCardRect(rect);
+  }, []);
 
   if (loadError || !template) {
     return (
@@ -128,72 +150,80 @@ export const ReviewScreen: React.FC = () => {
   }
 
   const currentDocument = documents[currentIndex];
+  const currentDataRow = dataRows[currentIndex] || null;
 
   return (
     <div className="h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex flex-col overflow-hidden">
+      {/* Header */}
       <header className="bg-white border-b border-neutral-gray/20 px-6 py-4 shrink-0 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={handleBack}
               className="p-2 hover:bg-neutral-light rounded-lg transition-colors"
+              aria-label="Back to data entry"
             >
               <ArrowLeft size={20} className="text-neutral-dark" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-neutral-dark">Review Documents</h1>
-              <p className="text-sm text-neutral-gray">
-                {documents.length} document{documents.length !== 1 ? 's' : ''} generated
-              </p>
+              <h1 className="text-2xl font-bold text-neutral-dark">{template.name}</h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <FileCheck size={14} className="text-green-500" />
+                <p className="text-sm text-neutral-gray">
+                  {documents.length} document{documents.length !== 1 ? 's' : ''} generated
+                </p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleDownloadCurrent}
-              disabled={!currentDocument}
-              className="flex items-center gap-2 px-4 py-2 text-neutral-dark hover:bg-neutral-light rounded-lg transition-colors disabled:opacity-50"
-            >
-              <Download size={18} />
-              <span>Download Current</span>
-            </button>
-            <button
-              onClick={() => void handleDownloadAll()}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
-            >
-              <Package size={18} />
-              <span>Download All (.zip)</span>
-            </button>
-          </div>
+          <button
+            onClick={() => void navigate('/')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <span>Done</span>
+            <ArrowRight size={18} />
+          </button>
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden p-6 flex flex-col">
-        <div className="flex-1 bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
-          <div className="flex items-center justify-between px-6 py-3 bg-neutral-light/50 border-b border-neutral-gray/10">
-            <button
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-neutral-dark hover:bg-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft size={16} />
-              <span>Previous</span>
-            </button>
-            <span className="text-sm font-medium text-neutral-dark">
-              Document {currentIndex + 1} of {documents.length}
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Document Preview Area */}
+        <div className="flex-1 overflow-hidden p-6 flex flex-col">
+          {/* Download Toolbar */}
+          <div className="bg-white rounded-t-xl border border-b-0 border-neutral-gray/20 px-4 py-3 flex items-center justify-between shrink-0">
+            <span className="text-sm text-neutral-gray">
+              Preview of generated document
             </span>
-            <button
-              onClick={handleNext}
-              disabled={currentIndex === documents.length - 1}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-neutral-dark hover:bg-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span>Next</span>
-              <ChevronRight size={16} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDownloadCurrent}
+                disabled={!currentDocument}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-neutral-dark hover:bg-neutral-light rounded-lg border border-neutral-gray/20 transition-colors disabled:opacity-50"
+              >
+                <Download size={16} />
+                <span>Download This</span>
+              </button>
+              <button
+                onClick={() => void handleDownloadAll()}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gradient-primary text-white rounded-lg font-medium hover:shadow-md transition-all"
+              >
+                <Package size={16} />
+                <span>Download All (.zip)</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-auto p-6">
+          {/* Document Viewer */}
+          <div className="flex-1 bg-white rounded-b-xl shadow-lg overflow-hidden border border-t-0 border-neutral-gray/20">
             {currentDocument ? (
-              <DocumentPreview docxBlob={currentDocument.docxBlob} className="h-full" />
+              <ReviewDocumentViewer
+                docxBlob={currentDocument.docxBlob}
+                fields={template.schema}
+                dataRow={currentDataRow}
+                activeFieldId={activeFieldId}
+                onFieldClick={handleFieldClick}
+                onHighlightRectChange={handleHighlightRectChange}
+              />
             ) : (
               <div className="flex items-center justify-center h-full text-neutral-gray">
                 No document to preview
@@ -201,9 +231,31 @@ export const ReviewScreen: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Right Sidebar */}
+        <ReviewFieldSidebar
+          fields={template.schema}
+          dataRow={currentDataRow}
+          currentIndex={currentIndex}
+          totalDocuments={documents.length}
+          activeFieldId={activeFieldId}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onFieldClick={handleSidebarFieldClick}
+          onFieldCardRectChange={handleFieldCardRectChange}
+        />
       </div>
 
-      <footer className="bg-white border-t border-neutral-gray/20 px-6 py-4 shrink-0">
+      {/* Connector Line */}
+      <FieldConnector
+        fieldCardRect={fieldCardRect}
+        highlightRect={highlightRect}
+        activeFieldId={activeFieldId}
+        fields={template.schema}
+      />
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-neutral-gray/20 px-6 py-3 shrink-0">
         <div className="flex items-center justify-between">
           <button
             onClick={handleBack}
@@ -212,13 +264,9 @@ export const ReviewScreen: React.FC = () => {
             <ArrowLeft size={18} />
             <span>Back to Data Entry</span>
           </button>
-          <button
-            onClick={() => void navigate('/')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
-          >
-            <span>Done</span>
-            <ArrowRight size={18} />
-          </button>
+          <p className="text-sm text-neutral-gray">
+            Click fields in the sidebar to locate them in the document
+          </p>
         </div>
       </footer>
     </div>
