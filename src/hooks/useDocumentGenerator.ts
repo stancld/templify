@@ -24,23 +24,16 @@ export const useDocumentGenerator = (): UseDocumentGeneratorReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const generate = useCallback(async (template: Template, dataRows: DataRow[]) => {
-    console.log('[useDocumentGenerator] generate called');
-    console.log('[useDocumentGenerator] Template:', template);
-    console.log('[useDocumentGenerator] DataRows:', dataRows);
-
     setIsGenerating(true);
     setError(null);
     setProgress({ current: 0, total: dataRows.length });
 
     try {
       const generatedDocs = await generateAllDocuments(template, dataRows, (current, total) => {
-        console.log(`[useDocumentGenerator] Progress: ${current}/${total}`);
         setProgress({ current, total });
       });
-      console.log('[useDocumentGenerator] Generation complete, docs:', generatedDocs.length);
       setDocuments(generatedDocs);
     } catch (err) {
-      console.error('[useDocumentGenerator] Generation error:', err);
       setError(err instanceof Error ? err.message : 'Failed to generate documents');
       setDocuments([]);
     } finally {
