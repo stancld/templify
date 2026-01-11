@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 import { Field } from '../../types';
 import {
   renderDocxPreview,
@@ -66,7 +67,16 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isDrawMode, setIsDrawMode] = useState(false);
   const [selectionError, setSelectionError] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
   const plainTextRef = useRef<string>('');
+
+  const ZOOM_STEP = 0.1;
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 2;
+
+  const handleZoomIn = () => setZoom((z) => Math.min(z + ZOOM_STEP, MAX_ZOOM));
+  const handleZoomOut = () => setZoom((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM));
+  const handleZoomReset = () => setZoom(1);
 
   useEffect(() => {
     const renderDocument = async () => {
@@ -329,6 +339,34 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
 
   return (
     <div className="relative">
+      <div className="fixed left-4 top-24 z-50">
+        <div className="flex items-center gap-1 bg-white border border-neutral-gray/20 rounded-lg shadow-md px-2 py-1">
+          <button
+            onClick={handleZoomOut}
+            disabled={zoom <= MIN_ZOOM}
+            className="p-1.5 hover:bg-neutral-light rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Zoom out"
+          >
+            <ZoomOut size={18} className="text-neutral-dark" />
+          </button>
+          <button
+            onClick={handleZoomReset}
+            className="px-2 py-1 text-sm font-medium text-neutral-dark hover:bg-neutral-light rounded transition-colors min-w-[52px]"
+            title="Reset zoom"
+          >
+            {Math.round(zoom * 100)}%
+          </button>
+          <button
+            onClick={handleZoomIn}
+            disabled={zoom >= MAX_ZOOM}
+            className="p-1.5 hover:bg-neutral-light rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Zoom in"
+          >
+            <ZoomIn size={18} className="text-neutral-dark" />
+          </button>
+        </div>
+      </div>
+
       {selectionError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
           {selectionError}
@@ -338,14 +376,22 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       <div ref={styleContainerRef} />
 
       <div
-        ref={containerRef}
-        className="docx-container"
-        onMouseUp={!isDrawMode ? handleSelection : undefined}
+        className="docx-zoom-wrapper"
         style={{
-          userSelect: isDrawMode ? 'none' : 'text',
-          cursor: isDrawMode ? 'crosshair' : 'text',
+          transform: `scale(${zoom})`,
+          transformOrigin: 'top center',
         }}
-      />
+      >
+        <div
+          ref={containerRef}
+          className="docx-container"
+          onMouseUp={!isDrawMode ? handleSelection : undefined}
+          style={{
+            userSelect: isDrawMode ? 'none' : 'text',
+            cursor: isDrawMode ? 'crosshair' : 'text',
+          }}
+        />
+      </div>
 
       <BoundingBoxDrawer
         enabled={isDrawMode && isRendered}
