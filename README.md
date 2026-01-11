@@ -6,18 +6,18 @@
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Automate template document filling with ease.**
+**Fill Word templates in bulk. No account needed.**
 
-Transform your Word document templates into powerful automation tools. Upload, define fields, and generate hundreds of personalized documents in minutes.
+Upload a Word document, highlight fields, fill in a spreadsheet, download filled documents. Simple as that.
 
 ## ✨ Features
 
-- 📤 **Upload Templates** – Upload any .docx Word document
-- 🎯 **Visual Field Definition** – Highlight text and define fillable fields
-- 📊 **Spreadsheet Data Entry** – Enter data in a familiar grid interface
-- 📁 **CSV Import** – Bulk import data from CSV files
-- ⚡ **Batch Generation** – Generate multiple documents instantly
-- 👁️ **Preview & Download** – Review documents before downloading as ZIP
+- 📤 **Upload Templates** – Works with any .docx Word document
+- 🎯 **Visual Field Definition** – Just highlight text to create fields
+- 📊 **Spreadsheet Data Entry** – Fill data in a familiar grid
+- 📁 **CSV Import** – Already have data? Import it
+- ⚡ **Batch Generation** – Generate 1 or 100 documents at once
+- 🔒 **Privacy First** – Everything stays in your browser, nothing uploaded
 
 ## 🚀 Quick Start
 

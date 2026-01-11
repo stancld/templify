@@ -1,8 +1,14 @@
-# Templify - Template Document Automation
+# Templify - Simple Template Filler
 
 ## Project Overview
 
-Templify is a web application that automates filling template documents. Users upload a Word document, define fillable fields by highlighting text, and generate multiple filled documents using spreadsheet-like data entry.
+Templify is a browser-based tool for filling Word templates in bulk. Users upload a .docx document, define fillable fields by highlighting text, and generate multiple filled documents using spreadsheet-like data entry. No account required - everything stays in the browser.
+
+## Competitors
+
+- **[Documentero](https://documentero.com/)** - Web-based, requires account, freemium model, 1000+ templates
+- **Microsoft Word Mail Merge** - Built-in but clunky UX, requires Outlook/Excel
+- **Google Docs Add-ons** - Requires Google account, various quality levels
 
 ## Current Status: Iteration 1 Complete ✅
 
