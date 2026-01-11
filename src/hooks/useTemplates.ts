@@ -15,8 +15,8 @@ export const useTemplates = () => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        const templatesWithDates = parsed.map((t: Template) => ({
+        const parsed = JSON.parse(stored) as Template[];
+        const templatesWithDates = parsed.map((t) => ({
           ...t,
           createdAt: new Date(t.createdAt),
         }));

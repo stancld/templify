@@ -3,13 +3,13 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, FileText } from 'lucide-react';
 
 interface UploadZoneProps {
-  onFileUpload: (file: File) => void;
+  onFileUpload: (file: File) => void | Promise<void>;
 }
 
 export const UploadZone: React.FC<UploadZoneProps> = ({ onFileUpload }) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
-      onFileUpload(acceptedFiles[0]);
+      void onFileUpload(acceptedFiles[0]);
     }
   }, [onFileUpload]);
 

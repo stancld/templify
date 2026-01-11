@@ -9,12 +9,12 @@ export const LandingPage: React.FC = () => {
   const { templates, deleteTemplate } = useTemplates();
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (_file: File) => {
     setIsUploading(true);
     try {
-      console.log('File uploaded:', file.name);
       // TODO: Process the file with mammoth.js
-      // For now, just log it
+      // For now, just simulate processing
+      await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
       console.error('Error processing file:', error);
     } finally {
@@ -22,8 +22,7 @@ export const LandingPage: React.FC = () => {
     }
   };
 
-  const handleEditTemplate = (template: Template) => {
-    console.log('Edit template:', template.id);
+  const handleEditTemplate = (_template: Template) => {
     // TODO: Navigate to template editor
   };
 
