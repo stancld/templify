@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Template } from '../types';
-
-const STORAGE_KEY = 'templify_templates';
+import { loadAllTemplates, deleteTemplate as deleteTemplateStorage, base64ToBlob } from '../services/storage';
 
 export const useTemplates = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -13,15 +12,28 @@ export const useTemplates = () => {
 
   const loadTemplates = () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as Template[];
-        const templatesWithDates = parsed.map((t) => ({
-          ...t,
-          createdAt: new Date(t.createdAt),
-        }));
-        setTemplates(templatesWithDates);
-      }
+      setLoading(true);
+      const serializedTemplates = loadAllTemplates();
+
+      const templatesWithBlobs = serializedTemplates.map((st) => {
+        const blob = base64ToBlob(
+          st.originalDocxBase64,
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
+
+        const template: Template = {
+          id: st.id,
+          name: st.name,
+          originalDocx: blob,
+          htmlContent: st.htmlContent,
+          schema: st.schema,
+          createdAt: new Date(st.createdAt),
+        };
+
+        return template;
+      });
+
+      setTemplates(templatesWithBlobs);
     } catch (error) {
       console.error('Error loading templates:', error);
     } finally {
@@ -29,22 +41,10 @@ export const useTemplates = () => {
     }
   };
 
-  const saveTemplate = (template: Template) => {
-    try {
-      const updated = [...templates, template];
-      setTemplates(updated);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch (error) {
-      console.error('Error saving template:', error);
-      throw error;
-    }
-  };
-
   const deleteTemplate = (id: string) => {
     try {
-      const updated = templates.filter(t => t.id !== id);
-      setTemplates(updated);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      deleteTemplateStorage(id);
+      loadTemplates();
     } catch (error) {
       console.error('Error deleting template:', error);
       throw error;
@@ -54,7 +54,6 @@ export const useTemplates = () => {
   return {
     templates,
     loading,
-    saveTemplate,
     deleteTemplate,
     refreshTemplates: loadTemplates,
   };

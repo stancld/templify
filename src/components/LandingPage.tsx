@@ -1,34 +1,53 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UploadZone } from './upload/UploadZone';
 import { TemplatesList } from './templates/TemplatesList';
 import { useTemplates } from '../hooks/useTemplates';
 import { Sparkles, Zap, FileCheck } from 'lucide-react';
 import { Template } from '../types';
+import { parseDocxToHtml } from '../services/docx-parser';
+import { saveTemplateWithBlob } from '../services/storage';
 
 export const LandingPage: React.FC = () => {
-  const { templates, deleteTemplate } = useTemplates();
+  const navigate = useNavigate();
+  const { templates, deleteTemplate, refreshTemplates } = useTemplates();
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleFileUpload = async (_file: File) => {
+  const handleFileUpload = async (file: File) => {
     setIsUploading(true);
+    setUploadError(null);
+
     try {
-      // TODO: Process the file with mammoth.js
-      // For now, just simulate processing
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { html } = await parseDocxToHtml(file);
+
+      const newTemplate: Template = {
+        id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: file.name.replace('.docx', ''),
+        originalDocx: file,
+        htmlContent: html,
+        schema: [],
+        createdAt: new Date(),
+      };
+
+      await saveTemplateWithBlob(newTemplate);
+      refreshTemplates();
+
+      void navigate(`/editor/${newTemplate.id}`);
     } catch (error) {
       console.error('Error processing file:', error);
-    } finally {
+      setUploadError('Failed to process document. Please ensure the file is a valid .docx file.');
       setIsUploading(false);
     }
   };
 
-  const handleEditTemplate = (_template: Template) => {
-    // TODO: Navigate to template editor
+  const handleEditTemplate = (template: Template) => {
+    void navigate(`/editor/${template.id}`);
   };
 
   const handleDeleteTemplate = (id: string) => {
     if (window.confirm('Are you sure you want to delete this template?')) {
-      deleteTemplate(id);
+      void deleteTemplate(id);
     }
   };
 
@@ -72,6 +91,11 @@ export const LandingPage: React.FC = () => {
               <div className="mt-4 text-center">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
                 <p className="mt-2 text-neutral-gray">Processing your document...</p>
+              </div>
+            )}
+            {uploadError && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+                {uploadError}
               </div>
             )}
           </div>
