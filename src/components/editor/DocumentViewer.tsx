@@ -209,10 +209,17 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         return;
       }
 
-      const { startPosition, endPosition } = positions;
+      let { startPosition, endPosition } = positions;
       if (startPosition === endPosition) {return;}
 
-      const placeholder = plainTextRef.current.substring(startPosition, endPosition).trim();
+      const rawText = plainTextRef.current.substring(startPosition, endPosition);
+      const leadingWhitespace = rawText.length - rawText.trimStart().length;
+      const trailingWhitespace = rawText.length - rawText.trimEnd().length;
+
+      startPosition += leadingWhitespace;
+      endPosition -= trailingWhitespace;
+
+      const placeholder = rawText.trim();
 
       if (placeholder.length === 0) {
         setSelectionError('Selection contains no text');
@@ -253,7 +260,18 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         return;
       }
 
-      const { startPosition, endPosition, text } = result;
+      const rawText = result.text;
+      const leadingWhitespace = rawText.length - rawText.trimStart().length;
+      const trailingWhitespace = rawText.length - rawText.trimEnd().length;
+
+      const startPosition = result.startPosition + leadingWhitespace;
+      const endPosition = result.endPosition - trailingWhitespace;
+      const text = rawText.trim();
+
+      if (text.length === 0) {
+        setSelectionError('Selection contains no text');
+        return;
+      }
 
       if (text.length > 500) {
         setSelectionError('Selected text is too long (max 500 characters)');
