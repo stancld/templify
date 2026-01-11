@@ -1,0 +1,60 @@
+# Templify
+
+> Free browser-based tool for filling Word document templates in bulk.
+
+## What is Templify?
+
+Templify is a document automation tool that lets you fill Word (.docx) templates with data from a spreadsheet. It runs entirely in your browser - no signup required, no data leaves your device.
+
+## How It Works
+
+1. **Upload Template**: Upload a Word document (.docx) containing placeholder text
+2. **Define Fields**: Highlight text in the document to create fillable fields
+3. **Enter Data**: Fill in a spreadsheet with values for each field (supports CSV import)
+4. **Generate Documents**: Download multiple personalized documents instantly
+
+## Key Features
+
+- No account or signup required
+- No installation - runs instantly in your browser
+- 100% private - files never leave your browser
+- Bulk document generation
+- CSV data import
+- Visual field definition via text highlighting
+- Supports .docx format (Microsoft Word)
+
+## Use Cases
+
+- Mail merge for letters and contracts
+- Generating certificates in bulk
+- Creating personalized invoices
+- Filling legal document templates
+- HR document automation (offer letters, NDAs)
+- Event badge and name tag generation
+
+## Comparison to Alternatives
+
+| Feature | Templify | Microsoft Mail Merge | Documentero |
+|---------|----------|---------------------|-------------|
+| Free | Yes | Yes (requires Office) | Freemium |
+| No Signup | Yes | N/A | No |
+| Privacy | 100% local (browser storage) | Local | Cloud-based |
+| Data Sharing | None - all data stays in your browser | None | Uploaded to servers |
+
+## Technical Details
+
+- Built with React and TypeScript
+- Uses JSZip for .docx manipulation
+- All processing happens client-side
+- Data stored in browser localStorage
+
+## Pricing
+
+Free. No paid tiers. No limits.
+
+## Creator
+
+Built by Dan Stancl
+- GitHub: https://github.com/stancld
+- Twitter/X: https://x.com/stancld
+- LinkedIn: https://linkedin.com/in/stancld

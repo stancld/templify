@@ -5,7 +5,7 @@ import reactRefreshPlugin from 'eslint-plugin-react-refresh';
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**', 'build/**'],
+    ignores: ['dist/**', 'node_modules/**', 'build/**', 'api/**'],
   },
   {
     files: ['src/**/*.{ts,tsx}'],

@@ -1,0 +1,7 @@
+# Templify - robots.txt
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://templify-lake.vercel.app/sitemap.xml

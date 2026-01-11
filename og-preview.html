@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OG Image Preview</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #1a1a1a;
+      margin: 0;
+      font-family: system-ui, sans-serif;
+    }
+    .container {
+      border: 2px solid #333;
+    }
+    .og-image {
+      width: 1200px;
+      height: 630px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1e3a5f 0%, #3b82f6 50%, #8b5cf6 100%);
+      position: relative;
+    }
+    .title {
+      font-size: 80px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -2px;
+      margin-bottom: 40px;
+    }
+    .tagline {
+      font-size: 40px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 60px;
+    }
+    .steps {
+      display: flex;
+      gap: 40px;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .step-num {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+    }
+    .step-text {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .footer {
+      position: absolute;
+      bottom: 40px;
+      display: flex;
+      gap: 20px;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .footer .dot {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .info {
+      color: #888;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="container">
+      <div class="og-image">
+        <div class="title">Templify</div>
+        <div class="tagline">Fill Word Templates in Bulk</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <span class="step-text">Upload</span>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <span class="step-text">Define Fields</span>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <span class="step-text">Generate</span>
+          </div>
+        </div>
+        <div class="footer">
+          <span>No Signup</span>
+          <span class="dot">•</span>
+          <span>No Install</span>
+          <span class="dot">•</span>
+          <span>100% Private</span>
+        </div>
+      </div>
+    </div>
+    <p class="info">Preview: 1200x630px — Open this file in browser to see how the OG image will look</p>
+  </div>
+</body>
+</html>

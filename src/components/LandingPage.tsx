@@ -74,7 +74,7 @@ export const LandingPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <Sparkles size={18} className="text-primary" />
-                <span className="text-sm font-medium">Works Offline</span>
+                <span className="text-sm font-medium">No Install</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <FileCheck size={18} className="text-accent-purple" />
