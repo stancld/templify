@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Field } from '../../types';
 
@@ -26,13 +26,18 @@ export const FieldDefinitionModal: React.FC<FieldDefinitionModalProps> = ({
   const [fieldName, setFieldName] = useState('');
   const [fieldType, setFieldType] = useState<'text' | 'number' | 'date'>('text');
   const [validationError, setValidationError] = useState('');
+  const prevIsOpenRef = useRef(isOpen);
 
+  // Initialize form fields when modal opens
   useEffect(() => {
-    if (isOpen && initialData) {
+    // Only initialize when transitioning from closed to open to prevent cascading renders
+    if (isOpen && !prevIsOpenRef.current && initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Modal form initialization pattern
       setFieldName(initialData.name || '');
       setFieldType(initialData.type || 'text');
       setValidationError('');
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, initialData]);
 
   const handleSave = () => {
