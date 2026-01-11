@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ArrowRight, Table } from 'lucide-react';
 import { useTemplateEditor } from '../../hooks/useTemplateEditor';
 import { DocumentViewer, TextSelection } from './DocumentViewer';
 import { FieldSidebar } from './FieldSidebar';
@@ -179,13 +179,19 @@ export const TemplateEditor: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
-              onClick={() => {}}
-            >
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-4 py-2 text-accent-green">
               <Save size={18} />
-              <span>Saved</span>
+              <span className="text-sm font-medium">Saved</span>
+            </div>
+            <button
+              onClick={() => void navigate(`/data/${templateId}`)}
+              disabled={template.schema.length === 0}
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+            >
+              <Table size={18} />
+              <span>Enter Data</span>
+              <ArrowRight size={18} />
             </button>
           </div>
         </div>
