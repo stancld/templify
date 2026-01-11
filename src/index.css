@@ -28,3 +28,37 @@
     @apply bg-gradient-primary bg-clip-text text-transparent;
   }
 }
+
+/* Document preview styling - preserves original document dimensions */
+.document-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  gap: 24px;
+  min-height: 600px;
+}
+
+.document-preview-container .docx-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.document-preview-container .docx-wrapper > section.docx {
+  background: white !important;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  border-radius: 4px;
+  margin: 0 !important;
+}
+
+/* Ensure pages maintain their original aspect ratio */
+.document-preview-container .docx-wrapper > section.docx {
+  width: auto !important;
+  min-width: auto !important;
+  max-width: 100%;
+  overflow: visible;
+}
