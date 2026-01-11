@@ -41,6 +41,7 @@ export const FieldCard: React.FC<FieldCardProps> = ({
 
   return (
     <div
+      data-field-card-id={field.id}
       className={`
         p-4 rounded-lg border-2 transition-all cursor-pointer
         ${

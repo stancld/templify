@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useTemplateEditor } from '../../hooks/useTemplateEditor';
 import { DocumentViewer, TextSelection } from './DocumentViewer';
 import { FieldSidebar } from './FieldSidebar';
 import { FieldDefinitionModal } from './FieldDefinitionModal';
+import { FieldConnector } from './FieldConnector';
 import { Field } from '../../types';
 
 export const TemplateEditor: React.FC = () => {
@@ -25,6 +26,57 @@ export const TemplateEditor: React.FC = () => {
   const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingField, setEditingField] = useState<Field | null>(null);
+
+  const mainContentRef = useRef<HTMLDivElement>(null);
+  const documentViewerRef = useRef<HTMLDivElement>(null);
+  const [connectorPoints, setConnectorPoints] = useState<{
+    fieldCardRect: DOMRect | null;
+    highlightRect: DOMRect | null;
+  }>({ fieldCardRect: null, highlightRect: null });
+
+  useEffect(() => {
+    const computeConnectorPoints = () => {
+      if (!activeFieldId) {
+        return { fieldCardRect: null, highlightRect: null };
+      }
+
+      const fieldCard = document.querySelector(`[data-field-card-id="${activeFieldId}"]`);
+      const highlight = document.querySelector(`[data-field-id="${activeFieldId}"]`);
+
+      if (fieldCard && highlight) {
+        return {
+          fieldCardRect: fieldCard.getBoundingClientRect(),
+          highlightRect: highlight.getBoundingClientRect(),
+        };
+      }
+      return { fieldCardRect: null, highlightRect: null };
+    };
+
+    const updatePoints = () => {
+      const points = computeConnectorPoints();
+      setConnectorPoints(points);
+    };
+
+    const frameId = requestAnimationFrame(updatePoints);
+
+    const handleScroll = () => {
+      requestAnimationFrame(updatePoints);
+    };
+
+    const mainContent = mainContentRef.current;
+    if (mainContent) {
+      mainContent.addEventListener('scroll', handleScroll);
+    }
+    window.addEventListener('resize', updatePoints);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      if (mainContent) {
+        mainContent.removeEventListener('scroll', handleScroll);
+      }
+      window.removeEventListener('resize', updatePoints);
+    };
+  }, [activeFieldId]);
 
   const handleTextSelected = (selection: TextSelection) => {
     setSelectedText(selection);
@@ -108,8 +160,8 @@ export const TemplateEditor: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex flex-col">
-      <header className="bg-white border-b border-neutral-gray/20 px-6 py-4">
+    <div className="h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex flex-col overflow-hidden">
+      <header className="bg-white border-b border-neutral-gray/20 px-6 py-4 shrink-0 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -139,9 +191,9 @@ export const TemplateEditor: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+      <div className="flex flex-1 overflow-hidden relative">
+        <div ref={mainContentRef} className="flex-1 overflow-y-auto p-8">
+          <div ref={documentViewerRef} className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
             <DocumentViewer
               docxBlob={template.originalDocx}
               fields={template.schema}
@@ -152,6 +204,13 @@ export const TemplateEditor: React.FC = () => {
             />
           </div>
         </div>
+
+        <FieldConnector
+          fieldCardRect={connectorPoints.fieldCardRect}
+          highlightRect={connectorPoints.highlightRect}
+          activeFieldId={activeFieldId}
+          fields={template.schema}
+        />
 
         <FieldSidebar
           fields={template.schema}

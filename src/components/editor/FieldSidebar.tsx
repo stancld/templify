@@ -19,8 +19,8 @@ export const FieldSidebar: React.FC<FieldSidebarProps> = ({
   onFieldDelete,
 }) => {
   return (
-    <div className="w-80 bg-white border-l border-neutral-gray/20 flex flex-col">
-      <div className="p-6 border-b border-neutral-gray/20">
+    <div className="w-80 bg-white border-l border-neutral-gray/20 flex flex-col h-full">
+      <div className="p-6 border-b border-neutral-gray/20 bg-white sticky top-0 z-10 shrink-0">
         <div className="flex items-center gap-2 mb-2">
           <div className="p-2 bg-gradient-primary rounded-lg">
             <Layers size={20} className="text-white" />
@@ -61,7 +61,7 @@ export const FieldSidebar: React.FC<FieldSidebarProps> = ({
       </div>
 
       {fields.length > 0 && (
-        <div className="p-6 border-t border-neutral-gray/20 bg-neutral-light/30">
+        <div className="p-6 border-t border-neutral-gray/20 bg-neutral-light/30 sticky bottom-0 shrink-0">
           <p className="text-xs text-neutral-gray text-center">
             Click a field to highlight it in the document
           </p>
