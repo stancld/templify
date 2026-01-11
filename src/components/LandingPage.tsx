@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { UploadZone } from './upload/UploadZone';
 import { TemplatesList } from './templates/TemplatesList';
 import { useTemplates } from '../hooks/useTemplates';
-import { Sparkles, Zap, FileCheck } from 'lucide-react';
+import { Sparkles, Zap, FileCheck, Linkedin, Twitter, Github } from 'lucide-react';
 import { Template } from '../types';
 import { saveTemplateWithBlob } from '../services/storage';
 
@@ -161,6 +161,49 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-neutral-dark py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-neutral-gray/80 italic text-lg mb-4">
+            "It never always gets worse."
+          </p>
+          <p className="text-neutral-gray/60 text-sm mb-6">
+            — Lazarus Lake, Barkley Marathons creator
+          </p>
+          <div className="border-t border-neutral-gray/20 pt-6">
+            <div className="flex justify-center gap-6 mb-4">
+              <a
+                href="https://linkedin.com/in/stancld"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-gray/60 hover:text-white transition-colors"
+              >
+                <Linkedin size={20} />
+              </a>
+              <a
+                href="https://x.com/stancld"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-gray/60 hover:text-white transition-colors"
+              >
+                <Twitter size={20} />
+              </a>
+              <a
+                href="https://github.com/stancld"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-gray/60 hover:text-white transition-colors"
+              >
+                <Github size={20} />
+              </a>
+            </div>
+            <p className="text-neutral-gray/60 text-sm">
+              © 2026 Dan Stancl
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
