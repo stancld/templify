@@ -183,6 +183,10 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         mark.style.cursor = 'pointer';
         mark.style.padding = '2px 0';
         mark.style.borderRadius = '2px';
+        mark.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onFieldClick(field.id);
+        });
 
         try {
           range.surroundContents(mark);
@@ -191,7 +195,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         }
       }
     });
-  }, [fields, activeFieldId, isRendered]);
+  }, [fields, activeFieldId, isRendered, onFieldClick]);
 
   useEffect(() => {
     if (isRendered) {
@@ -242,7 +246,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
 
       if (hasOverlap(startPosition, endPosition, fields)) {
-        setSelectionError('Selection overlaps with existing field');
+        // Silently return - clicking on a field is handled by handleClick
         return;
       }
 
@@ -289,7 +293,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
 
       if (hasOverlap(startPosition, endPosition, fields)) {
-        setSelectionError('Selection overlaps with existing field');
+        // Silently return - clicking on a field is handled by handleClick
         return;
       }
 
@@ -301,33 +305,6 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     },
     [fields, onTextSelected]
   );
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const fieldMark = target.closest('[data-field-id]');
-
-      if (fieldMark) {
-        const fieldId = fieldMark.getAttribute('data-field-id');
-        if (fieldId) {
-          onFieldClick(fieldId);
-        }
-      } else if (activeFieldId) {
-        onFieldClick(activeFieldId);
-      }
-    };
-
-    const element = containerRef.current;
-    if (element) {
-      element.addEventListener('click', handleClick);
-    }
-
-    return () => {
-      if (element) {
-        element.removeEventListener('click', handleClick);
-      }
-    };
-  }, [onFieldClick, activeFieldId]);
 
   if (error) {
     return (
