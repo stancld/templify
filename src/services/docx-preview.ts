@@ -1,34 +1,50 @@
-import mammoth from 'mammoth';
+import { renderAsync, Options as DocxOptions } from 'docx-preview';
 
-export interface ParseResult {
-  html: string;
-  messages: Array<{ type: string; message: string }>;
+export interface RenderOptions {
+  className?: string;
+  inWrapper?: boolean;
+  ignoreWidth?: boolean;
+  ignoreHeight?: boolean;
+  ignoreFonts?: boolean;
+  breakPages?: boolean;
+  debug?: boolean;
 }
 
-export const parseDocxToHtml = async (file: Blob): Promise<ParseResult> => {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const result = await mammoth.convertToHtml({ arrayBuffer });
-
-    return {
-      html: result.value,
-      messages: result.messages,
-    };
-  } catch (error) {
-    console.error('Error parsing .docx file:', error);
-    throw new Error('Failed to parse document. Please ensure the file is a valid .docx file.');
-  }
+const defaultOptions: Partial<DocxOptions> = {
+  className: 'docx-preview',
+  inWrapper: true,
+  ignoreWidth: false,
+  ignoreHeight: false,
+  ignoreFonts: false,
+  breakPages: true,
+  ignoreLastRenderedPageBreak: true,
+  experimental: false,
+  trimXmlDeclaration: true,
+  useBase64URL: true,
+  renderHeaders: true,
+  renderFooters: true,
+  renderFootnotes: true,
+  renderEndnotes: true,
+  debug: false,
 };
 
-export const extractPlainText = (html: string): string => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
+export const renderDocxPreview = async (
+  docxBlob: Blob,
+  container: HTMLElement,
+  styleContainer?: HTMLElement,
+  options: RenderOptions = {}
+): Promise<void> => {
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+  };
 
-  const textContent = doc.body.textContent || '';
+  await renderAsync(docxBlob, container, styleContainer ?? container, mergedOptions);
+};
 
-  return textContent
-    .replace(/\s+/g, ' ')
-    .trim();
+export const extractPlainTextFromContainer = (container: HTMLElement): string => {
+  const textContent = container.textContent || '';
+  return textContent.replace(/\s+/g, ' ').trim();
 };
 
 interface PositionMapEntry {

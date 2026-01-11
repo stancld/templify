@@ -5,7 +5,6 @@ import { TemplatesList } from './templates/TemplatesList';
 import { useTemplates } from '../hooks/useTemplates';
 import { Sparkles, Zap, FileCheck } from 'lucide-react';
 import { Template } from '../types';
-import { parseDocxToHtml } from '../services/docx-parser';
 import { saveTemplateWithBlob } from '../services/storage';
 
 export const LandingPage: React.FC = () => {
@@ -19,13 +18,11 @@ export const LandingPage: React.FC = () => {
     setUploadError(null);
 
     try {
-      const { html } = await parseDocxToHtml(file);
-
       const newTemplate: Template = {
         id: `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: file.name.replace('.docx', ''),
         originalDocx: file,
-        htmlContent: html,
+        htmlContent: '',
         schema: [],
         createdAt: new Date(),
       };

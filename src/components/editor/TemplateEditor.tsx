@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import { useTemplateEditor } from '../../hooks/useTemplateEditor';
-import { TextSelection } from '../../hooks/useDocumentSelection';
-import { DocumentViewer } from './DocumentViewer';
+import { DocumentViewer, TextSelection } from './DocumentViewer';
 import { FieldSidebar } from './FieldSidebar';
 import { FieldDefinitionModal } from './FieldDefinitionModal';
 import { Field } from '../../types';
@@ -14,12 +13,12 @@ export const TemplateEditor: React.FC = () => {
 
   const {
     template,
-    plainText,
     loading,
     error,
     addField,
     updateField,
     deleteField,
+    handlePlainTextExtracted,
   } = useTemplateEditor(templateId || '');
 
   const [selectedText, setSelectedText] = useState<TextSelection | null>(null);
@@ -144,11 +143,11 @@ export const TemplateEditor: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-8">
           <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
             <DocumentViewer
-              htmlContent={template.htmlContent}
+              docxBlob={template.originalDocx}
               fields={template.schema}
-              plainText={plainText}
               onTextSelected={handleTextSelected}
               onFieldClick={handleFieldClick}
+              onPlainTextExtracted={handlePlainTextExtracted}
               activeFieldId={activeFieldId}
             />
           </div>

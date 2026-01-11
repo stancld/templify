@@ -1,28 +1,42 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Field } from '../../types';
-import { useDocumentSelection, TextSelection } from '../../hooks/useDocumentSelection';
+import {
+  renderDocxPreview,
+  extractPlainTextFromContainer,
+  convertDomRangeToCharPositions,
+  createPositionMap,
+} from '../../services/docx-preview';
+
+export interface TextSelection {
+  startPosition: number;
+  endPosition: number;
+  placeholder: string;
+}
 
 interface DocumentViewerProps {
-  htmlContent: string;
+  docxBlob: Blob;
   fields: Field[];
-  plainText: string;
   onTextSelected: (selection: TextSelection) => void;
   onFieldClick: (fieldId: string) => void;
+  onPlainTextExtracted: (plainText: string) => void;
   activeFieldId: string | null;
 }
 
-const getFieldColor = (fieldType: string, isActive: boolean, isHover: boolean = false): { bg: string; border: string } => {
+const getFieldColor = (
+  fieldType: string,
+  isActive: boolean
+): { bg: string; border: string } => {
   const colors = {
     text: {
-      bg: isActive ? 'rgba(63, 138, 226, 0.3)' : isHover ? 'rgba(63, 138, 226, 0.25)' : 'rgba(63, 138, 226, 0.2)',
+      bg: isActive ? 'rgba(63, 138, 226, 0.3)' : 'rgba(63, 138, 226, 0.2)',
       border: '#3F8AE2',
     },
     number: {
-      bg: isActive ? 'rgba(0, 235, 130, 0.3)' : isHover ? 'rgba(0, 235, 130, 0.25)' : 'rgba(0, 235, 130, 0.2)',
+      bg: isActive ? 'rgba(0, 235, 130, 0.3)' : 'rgba(0, 235, 130, 0.2)',
       border: '#00eb82',
     },
     date: {
-      bg: isActive ? 'rgba(174, 51, 236, 0.3)' : isHover ? 'rgba(174, 51, 236, 0.25)' : 'rgba(174, 51, 236, 0.2)',
+      bg: isActive ? 'rgba(174, 51, 236, 0.3)' : 'rgba(174, 51, 236, 0.2)',
       border: '#AE33EC',
     },
   };
@@ -30,106 +44,176 @@ const getFieldColor = (fieldType: string, isActive: boolean, isHover: boolean = 
   return colors[fieldType as keyof typeof colors] || colors.text;
 };
 
-const generateHighlightedHtml = (
-  htmlContent: string,
-  plainText: string,
-  fields: Field[],
-  activeFieldId: string | null
-): string => {
-  const sortedFields = [...fields].sort((a, b) => b.startPosition - a.startPosition);
-
-  let modifiedPlainText = plainText;
-  const insertions: Array<{ position: number; text: string }> = [];
-
-  sortedFields.forEach((field) => {
-    const isActive = field.id === activeFieldId;
-    const { bg, border } = getFieldColor(field.type, isActive);
-
-    const startTag = `<mark class="field-highlight" data-field-id="${field.id}" data-field-type="${field.type}" style="background-color: ${bg}; border-bottom: 2px solid ${border}; cursor: pointer; transition: all 0.2s; padding: 2px 0;">`;
-    const endTag = '</mark>';
-
-    insertions.push({ position: field.endPosition, text: endTag });
-    insertions.push({ position: field.startPosition, text: startTag });
-  });
-
-  insertions.sort((a, b) => b.position - a.position);
-
-  insertions.forEach((insertion) => {
-    modifiedPlainText =
-      modifiedPlainText.substring(0, insertion.position) +
-      insertion.text +
-      modifiedPlainText.substring(insertion.position);
-  });
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlContent, 'text/html');
-
-  let currentPos = 0;
-  let modifiedPos = 0;
-
-  const processNode = (node: Node): void => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      const textLength = node.textContent?.length || 0;
-      const modifiedText = modifiedPlainText.substring(modifiedPos, modifiedPos + textLength + countInsertions(currentPos, currentPos + textLength, insertions));
-
-      if (node.textContent) {
-        node.textContent = '';
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = modifiedText;
-        while (tempDiv.firstChild) {
-          node.parentNode?.insertBefore(tempDiv.firstChild, node);
-        }
-      }
-
-      currentPos += textLength;
-      modifiedPos += modifiedText.length;
-    } else if (node.nodeType === Node.ELEMENT_NODE) {
-      Array.from(node.childNodes).forEach(processNode);
-    }
-  };
-
-  const countInsertions = (start: number, end: number, insertions: Array<{ position: number; text: string }>): number => {
-    return insertions
-      .filter((ins) => ins.position >= start && ins.position < end)
-      .reduce((sum, ins) => sum + ins.text.length, 0);
-  };
-
-  try {
-    Array.from(doc.body.childNodes).forEach(processNode);
-    return doc.body.innerHTML;
-  } catch (error) {
-    console.error('Error generating highlighted HTML:', error);
-    return htmlContent;
-  }
+const hasOverlap = (start: number, end: number, fields: Field[]): boolean => {
+  return fields.some(
+    (field) => start < field.endPosition && end > field.startPosition
+  );
 };
 
 export const DocumentViewer: React.FC<DocumentViewerProps> = ({
-  htmlContent,
+  docxBlob,
   fields,
-  plainText,
   onTextSelected,
   onFieldClick,
+  onPlainTextExtracted,
   activeFieldId,
 }) => {
-  const documentRef = useRef<HTMLDivElement>(null);
-  const { selection, error, handleSelection, clearSelection } = useDocumentSelection(
-    documentRef,
-    plainText,
-    fields
-  );
-
-  const highlightedHtml = useMemo(
-    () => generateHighlightedHtml(htmlContent, plainText, fields, activeFieldId),
-    [htmlContent, plainText, fields, activeFieldId]
-  );
+  const containerRef = useRef<HTMLDivElement>(null);
+  const styleContainerRef = useRef<HTMLDivElement>(null);
+  const [isRendered, setIsRendered] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
+  const plainTextRef = useRef<string>('');
 
   useEffect(() => {
-    if (selection) {
-      onTextSelected(selection);
-      clearSelection();
+    const renderDocument = async () => {
+      if (!containerRef.current) {return;}
+
+      try {
+        setError(null);
+        setIsRendered(false);
+
+        containerRef.current.innerHTML = '';
+
+        await renderDocxPreview(
+          docxBlob,
+          containerRef.current,
+          styleContainerRef.current ?? undefined
+        );
+
+        const plainText = extractPlainTextFromContainer(containerRef.current);
+        plainTextRef.current = plainText;
+        onPlainTextExtracted(plainText);
+
+        setIsRendered(true);
+      } catch (err) {
+        console.error('Error rendering document:', err);
+        setError('Failed to render document. Please ensure the file is a valid .docx file.');
+      }
+    };
+
+    void renderDocument();
+  }, [docxBlob, onPlainTextExtracted]);
+
+  const applyFieldHighlights = useCallback(() => {
+    if (!containerRef.current || !isRendered || fields.length === 0) {return;}
+
+    const existingHighlights = containerRef.current.querySelectorAll('.field-highlight');
+    existingHighlights.forEach((el) => {
+      const parent = el.parentNode;
+      if (parent) {
+        while (el.firstChild) {
+          parent.insertBefore(el.firstChild, el);
+        }
+        parent.removeChild(el);
+      }
+    });
+
+    const positionMap = createPositionMap(containerRef.current);
+
+    const sortedFields = [...fields].sort((a, b) => a.startPosition - b.startPosition);
+
+    sortedFields.forEach((field) => {
+      const { bg, border } = getFieldColor(field.type, field.id === activeFieldId);
+
+      const startEntries = positionMap.filter(
+        (entry) => entry.startOffset <= field.startPosition && entry.endOffset > field.startPosition
+      );
+      const endEntries = positionMap.filter(
+        (entry) => entry.startOffset < field.endPosition && entry.endOffset >= field.endPosition
+      );
+
+      if (startEntries.length === 0 || endEntries.length === 0) {return;}
+
+      const startEntry = startEntries[0];
+      const endEntry = endEntries[0];
+
+      if (startEntry.node === endEntry.node) {
+        const textNode = startEntry.node as Text;
+        const startOffset = field.startPosition - startEntry.startOffset;
+        const endOffset = field.endPosition - startEntry.startOffset;
+
+        const range = document.createRange();
+        range.setStart(textNode, startOffset);
+        range.setEnd(textNode, endOffset);
+
+        const mark = document.createElement('mark');
+        mark.className = 'field-highlight';
+        mark.dataset.fieldId = field.id;
+        mark.dataset.fieldType = field.type;
+        mark.style.backgroundColor = bg;
+        mark.style.borderBottom = `2px solid ${border}`;
+        mark.style.cursor = 'pointer';
+        mark.style.padding = '2px 0';
+        mark.style.borderRadius = '2px';
+
+        try {
+          range.surroundContents(mark);
+        } catch {
+          console.warn('Could not highlight field:', field.name);
+        }
+      }
+    });
+  }, [fields, activeFieldId, isRendered]);
+
+  useEffect(() => {
+    if (isRendered) {
+      applyFieldHighlights();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selection]);
+  }, [isRendered, applyFieldHighlights]);
+
+  const handleSelection = useCallback(() => {
+    setSelectionError(null);
+
+    const windowSelection = window.getSelection();
+    if (!windowSelection || windowSelection.isCollapsed) {return;}
+    if (!containerRef.current) {return;}
+
+    try {
+      const range = windowSelection.getRangeAt(0);
+
+      if (!containerRef.current.contains(range.commonAncestorContainer)) {
+        return;
+      }
+
+      const positions = convertDomRangeToCharPositions(range, containerRef.current);
+      if (!positions) {
+        setSelectionError('Could not determine selection position');
+        return;
+      }
+
+      const { startPosition, endPosition } = positions;
+      if (startPosition === endPosition) {return;}
+
+      const placeholder = plainTextRef.current.substring(startPosition, endPosition).trim();
+
+      if (placeholder.length === 0) {
+        setSelectionError('Selection contains no text');
+        return;
+      }
+
+      if (placeholder.length > 500) {
+        setSelectionError('Selected text is too long (max 500 characters)');
+        return;
+      }
+
+      if (hasOverlap(startPosition, endPosition, fields)) {
+        setSelectionError('Selection overlaps with existing field');
+        return;
+      }
+
+      onTextSelected({
+        startPosition,
+        endPosition,
+        placeholder,
+      });
+
+      windowSelection.removeAllRanges();
+    } catch (err) {
+      console.error('Error handling selection:', err);
+      setSelectionError('Error processing selection');
+    }
+  }, [fields, onTextSelected]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -144,7 +228,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
     };
 
-    const element = documentRef.current;
+    const element = containerRef.current;
     if (element) {
       element.addEventListener('click', handleClick);
     }
@@ -156,18 +240,27 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     };
   }, [onFieldClick]);
 
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+        {error}
+      </div>
+    );
+  }
+
   return (
     <div>
-      {error && (
+      {selectionError && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-          {error}
+          {selectionError}
         </div>
       )}
 
+      <div ref={styleContainerRef} />
+
       <div
-        ref={documentRef}
-        className="prose max-w-none"
-        dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+        ref={containerRef}
+        className="docx-container"
         onMouseUp={handleSelection}
         style={{
           userSelect: 'text',
@@ -175,9 +268,37 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         }}
       />
 
+      {!isRendered && !error && (
+        <div className="flex items-center justify-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
+        </div>
+      )}
+
       <style>{`
+        .docx-container {
+          min-height: 200px;
+        }
+
+        .docx-container .docx-wrapper {
+          background: white;
+          padding: 0;
+        }
+
+        .docx-container .docx-wrapper > section.docx {
+          box-shadow: none;
+          margin: 0;
+          padding: 0;
+          min-height: auto;
+        }
+
         .field-highlight:hover {
           filter: brightness(0.95);
+        }
+
+        @media print {
+          .docx-container .docx-wrapper {
+            padding: 0;
+          }
         }
       `}</style>
     </div>

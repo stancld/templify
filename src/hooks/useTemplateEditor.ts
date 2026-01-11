@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Template, Field } from '../types';
 import { loadTemplateWithBlob, saveTemplateWithBlob } from '../services/storage';
-import { extractPlainText } from '../services/docx-parser';
 
 export const useTemplateEditor = (templateId: string) => {
   const [template, setTemplate] = useState<Template | null>(null);
@@ -28,10 +27,6 @@ export const useTemplateEditor = (templateId: string) => {
       }
 
       setTemplate(loaded);
-
-      const text = extractPlainText(loaded.htmlContent);
-      setPlainText(text);
-
       setLoading(false);
     } catch (err) {
       console.error('Error loading template:', err);
@@ -39,6 +34,10 @@ export const useTemplateEditor = (templateId: string) => {
       setLoading(false);
     }
   };
+
+  const handlePlainTextExtracted = useCallback((text: string) => {
+    setPlainText(text);
+  }, []);
 
   const saveTemplate = async (updatedTemplate: Template) => {
     try {
@@ -108,5 +107,6 @@ export const useTemplateEditor = (templateId: string) => {
     updateField,
     deleteField,
     refreshTemplate: loadTemplate,
+    handlePlainTextExtracted,
   };
 };
