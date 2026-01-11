@@ -1,16 +1,14 @@
 import { ImageResponse } from '@vercel/og';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export const config = {
-  runtime: 'nodejs',
+  runtime: 'edge',
 };
 
-const fontPath = join(process.cwd(), 'api', 'Inter-Bold.ttf');
-const fontData = readFileSync(fontPath);
+const fontData = fetch(
+  new URL('./Inter-Bold.ttf', import.meta.url)
+).then((res) => res.arrayBuffer());
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler() {
   const imageResponse = new ImageResponse(
     (
       <div
@@ -177,7 +175,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       fonts: [
         {
           name: 'Inter',
-          data: fontData,
+          data: await fontData,
           weight: 700,
           style: 'normal',
         },
@@ -185,9 +183,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   );
 
-  const buffer = await imageResponse.arrayBuffer();
-
-  res.setHeader('Content-Type', 'image/png');
-  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-  res.send(Buffer.from(buffer));
+  return imageResponse;
 }
