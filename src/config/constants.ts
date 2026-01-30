@@ -12,3 +12,11 @@ export const STORAGE_LIMITS = {
 
 export const FIELD_TYPES = ['text', 'number', 'date'] as const;
 export type FieldTypeValue = (typeof FIELD_TYPES)[number];
+
+export const SUPABASE_CONFIG = {
+  TABLES: {
+    TEMPLATES: 'templates',
+    DATA_SESSIONS: 'data_sessions',
+    DATA_ROWS: 'data_rows',
+  },
+} as const;

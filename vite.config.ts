@@ -12,6 +12,7 @@ export default defineConfig({
           'vendor-docx': ['docx-preview'],
           'vendor-jszip': ['jszip'],
           'vendor-icons': ['lucide-react'],
+          'vendor-supabase': ['@supabase/supabase-js'],
         },
       },
     },
