@@ -138,7 +138,6 @@ export const ReviewScreen: React.FC = () => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex flex-col overflow-hidden">
-      {/* Header */}
       <header className="bg-white border-b border-neutral-gray/20 px-6 py-4 shrink-0 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -169,11 +168,8 @@ export const ReviewScreen: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Document Preview Area */}
         <div className="flex-1 overflow-hidden p-6 flex flex-col">
-          {/* Download Toolbar */}
           <div className="bg-white rounded-t-xl border border-b-0 border-neutral-gray/20 px-4 py-3 flex items-center justify-between shrink-0">
             <span className="text-sm text-neutral-gray">
               Preview of generated document
@@ -197,7 +193,6 @@ export const ReviewScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Document Viewer */}
           <div className="flex-1 bg-white rounded-b-xl shadow-lg overflow-hidden border border-t-0 border-neutral-gray/20">
             {currentDocument ? (
               <ReviewDocumentViewer
@@ -216,7 +211,6 @@ export const ReviewScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Sidebar */}
         <ReviewFieldSidebar
           fields={template.schema}
           dataRow={currentDataRow}
@@ -230,7 +224,6 @@ export const ReviewScreen: React.FC = () => {
         />
       </div>
 
-      {/* Connector Line */}
       <FieldConnector
         fieldCardRect={fieldCardRect}
         highlightRect={highlightRect}
@@ -238,7 +231,6 @@ export const ReviewScreen: React.FC = () => {
         fields={template.schema}
       />
 
-      {/* Footer */}
       <footer className="bg-white border-t border-neutral-gray/20 px-6 py-3 shrink-0">
         <div className="flex items-center justify-between">
           <button

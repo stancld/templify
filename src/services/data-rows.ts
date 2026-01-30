@@ -26,9 +26,6 @@ export const saveDataRows = (dataRows: StoredDataRows): void => {
   localStorage.setItem(STORAGE_KEYS.DATA_ROWS, JSON.stringify(dataRows));
 };
 
-/**
- * Match a field value from imported data by case-insensitive field name comparison.
- */
 export const matchFieldValue = (
   item: Record<string, string>,
   fieldName: string

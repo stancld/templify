@@ -32,7 +32,6 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
   const activeCardRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Report active field card position for connector line
   useEffect(() => {
     if (activeFieldId && activeCardRef.current) {
       onFieldCardRectChange(activeCardRef.current.getBoundingClientRect());
@@ -41,7 +40,6 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
     }
   }, [activeFieldId, onFieldCardRectChange]);
 
-  // Update field card rect on scroll to keep connector line anchored
   const updateCardRect = useCallback(() => {
     if (activeCardRef.current) {
       onFieldCardRectChange(activeCardRef.current.getBoundingClientRect());
@@ -52,7 +50,6 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
 
   return (
     <div className="w-80 bg-white border-l border-neutral-gray/20 flex flex-col h-full">
-      {/* Document Navigation Header */}
       <div className="p-4 border-b border-neutral-gray/20 bg-white shrink-0">
         <div className="flex items-center justify-between">
           <button
@@ -79,7 +76,6 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
         </div>
       </div>
 
-      {/* Fields Header */}
       <div className="px-6 py-4 border-b border-neutral-gray/20 bg-neutral-light/30 shrink-0">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-gradient-primary rounded-lg">
@@ -94,7 +90,6 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
         </div>
       </div>
 
-      {/* Field Values List */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4">
         {fields.length === 0 ? (
           <div className="text-center py-12">
@@ -150,7 +145,6 @@ export const ReviewFieldSidebar: React.FC<ReviewFieldSidebarProps> = ({
         )}
       </div>
 
-      {/* Footer hint */}
       <div className="p-4 border-t border-neutral-gray/20 bg-neutral-light/30 shrink-0">
         <p className="text-xs text-neutral-gray text-center">
           Click a field to highlight it in the document

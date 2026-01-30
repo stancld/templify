@@ -18,9 +18,6 @@ export const FIELD_COLORS = {
 
 export type FieldType = keyof typeof FIELD_COLORS;
 
-/**
- * Get field highlight colors for document viewer
- */
 export const getFieldColor = (
   fieldType: string,
   isActive: boolean = false
@@ -32,17 +29,11 @@ export const getFieldColor = (
   };
 };
 
-/**
- * Get the border color for a field type
- */
 export const getFieldBorderColor = (fieldType: string): string => {
   const colors = FIELD_COLORS[fieldType as FieldType] || FIELD_COLORS.text;
   return colors.border;
 };
 
-/**
- * Tailwind CSS classes for field type badges/chips
- */
 export const FIELD_TYPE_CLASSES = {
   text: 'bg-blue-100 text-blue-600',
   number: 'bg-green-100 text-green-600',
@@ -52,9 +43,6 @@ export const FIELD_TYPE_CLASSES = {
 export const getFieldTypeClasses = (type: string): string =>
   FIELD_TYPE_CLASSES[type as FieldType] || FIELD_TYPE_CLASSES.text;
 
-/**
- * Tailwind CSS classes for field cards in review sidebar
- */
 export const FIELD_CARD_CLASSES = {
   text: {
     bg: 'bg-blue-100',

@@ -27,7 +27,6 @@ export const FieldDefinitionModal: React.FC<FieldDefinitionModalProps> = ({
   const [fieldType, setFieldType] = useState<'text' | 'number' | 'date'>('text');
   const [validationError, setValidationError] = useState('');
 
-  // Initialize form fields when modal opens with new data
   useEffect(() => {
     if (isOpen && initialData) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Modal form initialization pattern

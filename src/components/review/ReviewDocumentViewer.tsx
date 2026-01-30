@@ -49,7 +49,6 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
           }
         );
 
-        // Extract plain text for searching
         plainTextRef.current = containerRef.current.textContent || '';
         setIsRendered(true);
       } catch (err) {
@@ -69,12 +68,10 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
     const positionMap = createPositionMap(containerRef.current);
     const plainText = plainTextRef.current;
 
-    // For each field, find its value in the document and highlight
     fields.forEach((field) => {
       const value = dataRow.values[field.id];
       if (!value || value.trim().length === 0) {return;}
 
-      // Find the value in the plain text
       const valueIndex = plainText.indexOf(value);
       if (valueIndex === -1) {return;}
 
@@ -83,7 +80,6 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
 
       const { bg, border } = getFieldColor(field.type, field.id === activeFieldId);
 
-      // Find the text nodes that contain this range
       const startEntries = positionMap.filter(
         (entry) => entry.startOffset <= startPosition && entry.endOffset > startPosition
       );
@@ -96,7 +92,6 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
       const startEntry = startEntries[0];
       const endEntry = endEntries[0];
 
-      // Only highlight if within single text node (for simplicity)
       if (startEntry.node === endEntry.node) {
         const textNode = startEntry.node as Text;
         const startOffset = startPosition - startEntry.startOffset;
@@ -120,12 +115,11 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
         try {
           range.surroundContents(mark);
         } catch {
-          // Cross-element selection, skip this field
+          // Ignore cross-element selections
         }
       }
     });
 
-    // Update highlight rect for connector line
     if (activeFieldId) {
       const activeHighlight = containerRef.current.querySelector(
         `[data-field-id="${activeFieldId}"]`
@@ -146,7 +140,6 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
     }
   }, [isRendered, applyFieldHighlights]);
 
-  // Handle clicks on highlights
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -172,7 +165,6 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
     };
   }, [onFieldClick]);
 
-  // Scroll to active field highlight
   useEffect(() => {
     if (!activeFieldId || !containerRef.current) {return;}
 
@@ -184,7 +176,6 @@ export const ReviewDocumentViewer: React.FC<ReviewDocumentViewerProps> = ({
     }
   }, [activeFieldId]);
 
-  // Update highlight rect on scroll to keep connector line anchored
   const updateHighlightRect = useCallback(() => {
     if (!activeFieldId || !containerRef.current) {
       return;

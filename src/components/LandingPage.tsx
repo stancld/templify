@@ -52,7 +52,6 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30">
-      {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-purple/5" />
 
@@ -66,7 +65,6 @@ export const LandingPage: React.FC = () => {
               No account needed. Your files stay in your browser.
             </p>
 
-            {/* Feature Pills */}
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <Zap size={18} className="text-accent-green" />
@@ -83,7 +81,6 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Upload Section */}
           <div className="max-w-3xl mx-auto mb-20">
             <UploadZone onFileUpload={handleFileUpload} />
             {isUploading && (
@@ -99,7 +96,6 @@ export const LandingPage: React.FC = () => {
             )}
           </div>
 
-          {/* Templates Section */}
           {templates.length > 0 && (
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center justify-between mb-8">
@@ -123,7 +119,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* How It Works Section */}
       <div className="bg-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">
@@ -164,7 +159,6 @@ export const LandingPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <footer className="bg-neutral-dark py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-neutral-gray/80 italic text-lg mb-4">

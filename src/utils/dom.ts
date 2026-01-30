@@ -1,7 +1,3 @@
-/**
- * Removes a wrapper element while preserving its children.
- * Used to remove field highlights from the document.
- */
 export const unwrapElement = (element: Element): void => {
   const parent = element.parentNode;
   if (!parent) {
@@ -14,9 +10,6 @@ export const unwrapElement = (element: Element): void => {
   parent.removeChild(element);
 };
 
-/**
- * Removes all elements matching a selector by unwrapping them.
- */
 export const unwrapAllElements = (
   container: Element,
   selector: string

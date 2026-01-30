@@ -222,7 +222,6 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
 
       if (hasOverlap(startPosition, endPosition, fields)) {
-        // Silently return - clicking on a field is handled by handleClick
         return;
       }
 
@@ -267,7 +266,6 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       }
 
       if (hasOverlap(startPosition, endPosition, fields)) {
-        // Silently return - clicking on a field is handled by handleClick
         return;
       }
 

@@ -1,9 +1,5 @@
 import { useEffect, RefObject } from 'react';
 
-/**
- * Hook to handle scroll and resize events on a container element.
- * Calls the callback when the container scrolls or window resizes.
- */
 export const useScrollResize = (
   ref: RefObject<HTMLElement | null>,
   callback: () => void,
