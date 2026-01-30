@@ -2,7 +2,7 @@ import { DataRow } from '../types';
 import { STORAGE_KEYS } from '../config/constants';
 
 interface StoredDataRows {
-  [templateId: string]: DataRow[];
+  [sessionId: string]: DataRow[];
 }
 
 export const loadAllDataRows = (): StoredDataRows => {
@@ -17,9 +17,9 @@ export const loadAllDataRows = (): StoredDataRows => {
   }
 };
 
-export const getDataRowsForTemplate = (templateId: string): DataRow[] => {
+export const getDataRowsForSession = (sessionId: string): DataRow[] => {
   const stored = loadAllDataRows();
-  return stored[templateId] || [];
+  return stored[sessionId] || [];
 };
 
 export const saveDataRows = (dataRows: StoredDataRows): void => {

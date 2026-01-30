@@ -16,9 +16,18 @@ export interface Field {
   endPosition: number;
 }
 
+export interface DataSession {
+  id: string;
+  templateId: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface DataRow {
   id: string;
   templateId: string;
+  sessionId: string;
   values: Record<string, string>;
 }
 

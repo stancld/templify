@@ -1,30 +1,36 @@
 import { useState, useCallback, useMemo } from 'react';
-import { DataRow, Field } from '../types';
+import { DataRow, DataSession, Field } from '../types';
 import { generateId } from '../utils/id';
 import { loadAllDataRows, saveDataRows, matchFieldValue } from '../services/data-rows';
 
-export const useDataRows = (templateId: string, fields: Field[]) => {
+export const useDataRows = (session: DataSession, fields: Field[]) => {
+  const { id: sessionId, templateId } = session;
+
   const initialRows = useMemo(() => {
     const stored = loadAllDataRows();
-    return stored[templateId] || [];
-  }, [templateId]);
+    return stored[sessionId] || [];
+  }, [sessionId]);
 
   const [rows, setRows] = useState<DataRow[]>(initialRows);
 
   const saveRows = useCallback(
     (newRows: DataRow[]) => {
+      if (!sessionId) {
+        return;
+      }
       const stored = loadAllDataRows();
-      stored[templateId] = newRows;
+      stored[sessionId] = newRows;
       saveDataRows(stored);
       setRows(newRows);
     },
-    [templateId]
+    [sessionId]
   );
 
   const addRow = useCallback(() => {
     const newRow: DataRow = {
       id: generateId('row'),
       templateId,
+      sessionId,
       values: fields.reduce(
         (acc, field) => {
           acc[field.id] = '';
@@ -35,7 +41,7 @@ export const useDataRows = (templateId: string, fields: Field[]) => {
     };
     saveRows([...rows, newRow]);
     return newRow;
-  }, [rows, templateId, fields, saveRows]);
+  }, [rows, templateId, sessionId, fields, saveRows]);
 
   const updateRow = useCallback(
     (rowId: string, fieldId: string, value: string) => {
@@ -64,6 +70,7 @@ export const useDataRows = (templateId: string, fields: Field[]) => {
       const newRows: DataRow[] = data.map((item) => ({
         id: generateId('row'),
         templateId,
+        sessionId,
         values: Object.fromEntries(
           fields.map((field) => [field.id, matchFieldValue(item, field.name)])
         ),
@@ -72,7 +79,7 @@ export const useDataRows = (templateId: string, fields: Field[]) => {
       saveRows([...rows, ...newRows]);
       return newRows.length;
     },
-    [rows, templateId, fields, saveRows]
+    [rows, templateId, sessionId, fields, saveRows]
   );
 
   return {

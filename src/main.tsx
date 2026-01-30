@@ -4,6 +4,9 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import App from './App.tsx'
 import './index.css'
+import { runMigrations } from './services/migration.ts'
+
+runMigrations()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

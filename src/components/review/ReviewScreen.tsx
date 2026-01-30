@@ -12,8 +12,9 @@ import { ReviewDocumentViewer } from './ReviewDocumentViewer';
 import { ReviewFieldSidebar } from './ReviewFieldSidebar';
 import { FieldConnector } from '../editor/FieldConnector';
 import { useDocumentGenerator } from '../../hooks/useDocumentGenerator';
+import { useDataSession } from '../../hooks/useDataSessions';
 import { loadTemplateWithBlob } from '../../services/storage';
-import { getDataRowsForTemplate } from '../../services/data-rows';
+import { getDataRowsForSession } from '../../services/data-rows';
 import { pluralize } from '../../utils/text';
 
 export const ReviewScreen: React.FC = () => {
@@ -24,20 +25,32 @@ export const ReviewScreen: React.FC = () => {
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
   const [fieldCardRect, setFieldCardRect] = useState<DOMRect | null>(null);
 
-  const { template, dataRows, error: loadError } = useMemo(() => {
+  const { template, error: loadError } = useMemo(() => {
     if (!templateId) {
-      return { template: null, dataRows: [], error: 'No template ID provided' };
+      return { template: null, error: 'No template ID provided' };
     }
     const loaded = loadTemplateWithBlob(templateId);
     if (!loaded) {
-      return { template: null, dataRows: [], error: 'Template not found' };
+      return { template: null, error: 'Template not found' };
     }
-    const rows = getDataRowsForTemplate(templateId);
-    if (rows.length === 0) {
-      return { template: loaded, dataRows: [], error: 'No data rows found' };
-    }
-    return { template: loaded, dataRows: rows, error: null };
+    return { template: loaded, error: null };
   }, [templateId]);
+
+  const { session } = useDataSession(
+    templateId || '',
+    template?.name || ''
+  );
+
+  const { dataRows, error: dataError } = useMemo(() => {
+    if (!session.id) {
+      return { dataRows: [], error: 'No data session found' };
+    }
+    const rows = getDataRowsForSession(session.id);
+    if (rows.length === 0) {
+      return { dataRows: [], error: 'No data rows found' };
+    }
+    return { dataRows: rows, error: null };
+  }, [session.id]);
 
   const { documents, isGenerating, progress, error: genError, generate, downloadSingle, downloadAll } =
     useDocumentGenerator();
@@ -87,11 +100,11 @@ export const ReviewScreen: React.FC = () => {
     setFieldCardRect(rect);
   }, []);
 
-  if (loadError || !template) {
+  if (loadError || dataError || !template) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{loadError || 'Template not found'}</p>
+          <p className="text-red-600 mb-4">{loadError || dataError || 'Template not found'}</p>
           <button onClick={() => void navigate('/')} className="btn-primary">
             Back to Home
           </button>
@@ -149,7 +162,7 @@ export const ReviewScreen: React.FC = () => {
               <ArrowLeft size={20} className="text-neutral-dark" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-neutral-dark">{template.name}</h1>
+              <h1 className="text-2xl font-bold text-neutral-dark">{session.name}</h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <FileCheck size={14} className="text-green-500" />
                 <p className="text-sm text-neutral-gray">

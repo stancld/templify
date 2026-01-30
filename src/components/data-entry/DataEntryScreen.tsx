@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Trash2, FileText, ArrowRight } from 'lucide-react';
 import { SpreadsheetGrid } from './SpreadsheetGrid';
 import { ImportDialog } from './ImportDialog';
+import { EditableSessionTitle } from './EditableSessionTitle';
 import { useDataRows } from '../../hooks/useDataRows';
+import { useDataSession } from '../../hooks/useDataSessions';
 import { loadTemplateWithBlob } from '../../services/storage';
 import { pluralize } from '../../utils/text';
 
@@ -22,10 +24,15 @@ export const DataEntryScreen: React.FC = () => {
     return { template: loaded, error: null };
   }, [templateId]);
 
+  const { session, updateSessionName } = useDataSession(
+    templateId || '',
+    template?.name || ''
+  );
+
   const [isImportOpen, setIsImportOpen] = useState(false);
 
   const { rows, addRow, updateRow, deleteRow, deleteAllRows, importRows } = useDataRows(
-    templateId || '',
+    session,
     template?.schema || []
   );
 
@@ -48,6 +55,10 @@ export const DataEntryScreen: React.FC = () => {
       return;
     }
     void navigate(`/review/${templateId}`);
+  };
+
+  const handleSessionRename = (newName: string) => {
+    updateSessionName(newName);
   };
 
   if (error || !template) {
@@ -75,9 +86,12 @@ export const DataEntryScreen: React.FC = () => {
               <ArrowLeft size={20} className="text-neutral-dark" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-neutral-dark">{template.name}</h1>
+              <EditableSessionTitle
+                title={session.name}
+                onSave={handleSessionRename}
+              />
               <p className="text-sm text-neutral-gray">
-                Enter data for {template.schema.length} {pluralize(template.schema.length, 'field')}
+                {template.name} • {template.schema.length} {pluralize(template.schema.length, 'field')}
               </p>
             </div>
           </div>

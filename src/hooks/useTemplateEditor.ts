@@ -5,7 +5,6 @@ import { generateId } from '../utils/id';
 
 export const useTemplateEditor = (templateId: string) => {
   const [template, setTemplate] = useState<Template | null>(null);
-  const [plainText, setPlainText] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,8 +35,8 @@ export const useTemplateEditor = (templateId: string) => {
     }
   };
 
-  const handlePlainTextExtracted = useCallback((text: string) => {
-    setPlainText(text);
+  const handlePlainTextExtracted = useCallback((_text: string) => {
+    // Callback passed to DocumentViewer; kept for interface compatibility
   }, []);
 
   const saveTemplate = async (updatedTemplate: Template) => {
@@ -99,14 +98,27 @@ export const useTemplateEditor = (templateId: string) => {
     await saveTemplate(updatedTemplate);
   };
 
+  const updateTemplateName = async (name: string) => {
+    if (!template) {
+      return;
+    }
+
+    const updatedTemplate = {
+      ...template,
+      name,
+    };
+
+    await saveTemplate(updatedTemplate);
+  };
+
   return {
     template,
-    plainText,
     loading,
     error,
     addField,
     updateField,
     deleteField,
+    updateTemplateName,
     refreshTemplate: loadTemplate,
     handlePlainTextExtracted,
   };

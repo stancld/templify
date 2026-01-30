@@ -1,6 +1,8 @@
 export const STORAGE_KEYS = {
   TEMPLATES: 'templify_templates',
   DATA_ROWS: 'templify_data_rows',
+  DATA_SESSIONS: 'templify_data_sessions',
+  MIGRATION_VERSION: 'templify_migration_version',
 } as const;
 
 export const STORAGE_LIMITS = {
