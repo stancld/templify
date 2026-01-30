@@ -60,13 +60,11 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;');
 }
 
-function replaceFieldInXml(xml: string, field: Field, value: string): string {
-  const placeholder = field.placeholder;
-  return xml.split(placeholder).join(value);
-}
+const replaceFieldInXml = (xml: string, field: Field, value: string): string =>
+  xml.split(field.placeholder).join(value);
 
-export function downloadDocument(doc: GeneratedDocument, filename: string): void {
-  const url = URL.createObjectURL(doc.docxBlob);
+const triggerDownload = (blob: Blob, filename: string): void => {
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
@@ -74,6 +72,10 @@ export function downloadDocument(doc: GeneratedDocument, filename: string): void
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+};
+
+export function downloadDocument(doc: GeneratedDocument, filename: string): void {
+  triggerDownload(doc.docxBlob, filename);
 }
 
 export async function downloadAllAsZip(
@@ -91,12 +93,5 @@ export async function downloadAllAsZip(
   });
 
   const blob = await zip.generateAsync({ type: 'blob' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${template.name}_documents.zip`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  triggerDownload(blob, `${template.name}_documents.zip`);
 }

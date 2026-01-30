@@ -79,10 +79,6 @@ export const ReviewScreen: React.FC = () => {
     setActiveFieldId((prev) => (prev === fieldId ? null : fieldId));
   }, []);
 
-  const handleSidebarFieldClick = useCallback((fieldId: string) => {
-    setActiveFieldId((prev) => (prev === fieldId ? null : fieldId));
-  }, []);
-
   const handleHighlightRectChange = useCallback((rect: DOMRect | null) => {
     setHighlightRect(rect);
   }, []);
@@ -229,7 +225,7 @@ export const ReviewScreen: React.FC = () => {
           activeFieldId={activeFieldId}
           onPrevious={handlePrevious}
           onNext={handleNext}
-          onFieldClick={handleSidebarFieldClick}
+          onFieldClick={handleFieldClick}
           onFieldCardRectChange={handleFieldCardRectChange}
         />
       </div>

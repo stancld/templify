@@ -15,23 +15,17 @@ export const useTemplates = () => {
       setLoading(true);
       const serializedTemplates = loadAllTemplates();
 
-      const templatesWithBlobs = serializedTemplates.map((st) => {
-        const blob = base64ToBlob(
+      const templatesWithBlobs = serializedTemplates.map((st) => ({
+        id: st.id,
+        name: st.name,
+        originalDocx: base64ToBlob(
           st.originalDocxBase64,
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        );
-
-        const template: Template = {
-          id: st.id,
-          name: st.name,
-          originalDocx: blob,
-          htmlContent: st.htmlContent,
-          schema: st.schema,
-          createdAt: new Date(st.createdAt),
-        };
-
-        return template;
-      });
+        ),
+        htmlContent: st.htmlContent,
+        schema: st.schema,
+        createdAt: new Date(st.createdAt),
+      }));
 
       setTemplates(templatesWithBlobs);
     } catch (error) {

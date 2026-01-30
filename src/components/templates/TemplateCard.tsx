@@ -1,6 +1,7 @@
 import React from 'react';
 import { FileText, Calendar, Trash2, Edit } from 'lucide-react';
 import { Template } from '../../types';
+import { pluralize } from '../../utils/text';
 
 interface TemplateCardProps {
   template: Template;
@@ -42,7 +43,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
 
       <div className="mb-4">
         <p className="text-sm text-neutral-gray">
-          {template.schema.length} field{template.schema.length !== 1 ? 's' : ''} defined
+          {template.schema.length} {pluralize(template.schema.length, 'field')} defined
         </p>
       </div>
 

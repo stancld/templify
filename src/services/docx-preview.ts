@@ -167,17 +167,14 @@ export const extractTextFromBoundingBox = (
       return null;
     }
 
-    const startPosition = minPosition;
-    const endPosition = maxPosition;
-    const selectedText = plainText.substring(startPosition, endPosition);
-
+    const selectedText = plainText.substring(minPosition, maxPosition);
     if (!selectedText) {
       return null;
     }
 
     return {
-      startPosition,
-      endPosition,
+      startPosition: minPosition,
+      endPosition: maxPosition,
       text: selectedText,
     };
   } catch (error) {

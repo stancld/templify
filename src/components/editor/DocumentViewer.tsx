@@ -27,10 +27,21 @@ interface DocumentViewerProps {
   activeFieldId: string | null;
 }
 
-const hasOverlap = (start: number, end: number, fields: Field[]): boolean => {
-  return fields.some(
-    (field) => start < field.endPosition && end > field.startPosition
-  );
+const hasOverlap = (start: number, end: number, fields: Field[]): boolean =>
+  fields.some((field) => start < field.endPosition && end > field.startPosition);
+
+const trimSelection = (
+  rawText: string,
+  startPos: number,
+  endPos: number
+): { text: string; startPosition: number; endPosition: number } => {
+  const leadingWhitespace = rawText.length - rawText.trimStart().length;
+  const trailingWhitespace = rawText.length - rawText.trimEnd().length;
+  return {
+    text: rawText.trim(),
+    startPosition: startPos + leadingWhitespace,
+    endPosition: endPos - trailingWhitespace,
+  };
 };
 
 export const DocumentViewer: React.FC<DocumentViewerProps> = ({
@@ -194,17 +205,11 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         return;
       }
 
-      let { startPosition, endPosition } = positions;
-      if (startPosition === endPosition) {return;}
+      const { startPosition: rawStart, endPosition: rawEnd } = positions;
+      if (rawStart === rawEnd) {return;}
 
-      const rawText = plainTextRef.current.substring(startPosition, endPosition);
-      const leadingWhitespace = rawText.length - rawText.trimStart().length;
-      const trailingWhitespace = rawText.length - rawText.trimEnd().length;
-
-      startPosition += leadingWhitespace;
-      endPosition -= trailingWhitespace;
-
-      const placeholder = rawText.trim();
+      const rawText = plainTextRef.current.substring(rawStart, rawEnd);
+      const { text: placeholder, startPosition, endPosition } = trimSelection(rawText, rawStart, rawEnd);
 
       if (placeholder.length === 0) {
         setSelectionError('Selection contains no text');
@@ -245,13 +250,11 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         return;
       }
 
-      const rawText = result.text;
-      const leadingWhitespace = rawText.length - rawText.trimStart().length;
-      const trailingWhitespace = rawText.length - rawText.trimEnd().length;
-
-      const startPosition = result.startPosition + leadingWhitespace;
-      const endPosition = result.endPosition - trailingWhitespace;
-      const text = rawText.trim();
+      const { text, startPosition, endPosition } = trimSelection(
+        result.text,
+        result.startPosition,
+        result.endPosition
+      );
 
       if (text.length === 0) {
         setSelectionError('Selection contains no text');
@@ -268,11 +271,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
         return;
       }
 
-      onTextSelected({
-        startPosition,
-        endPosition,
-        placeholder: text,
-      });
+      onTextSelected({ startPosition, endPosition, placeholder: text });
     },
     [fields, onTextSelected]
   );
