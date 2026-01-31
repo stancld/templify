@@ -69,7 +69,7 @@ export const useTemplates = () => {
     async (id: string) => {
       try {
         if (useSupabase) {
-          await deleteTemplateFromSupabase(id);
+          await deleteTemplateFromSupabase(id, user?.id);
         } else {
           deleteTemplateLocal(id);
         }
@@ -79,7 +79,7 @@ export const useTemplates = () => {
         throw error;
       }
     },
-    [useSupabase, loadTemplates]
+    [useSupabase, user?.id, loadTemplates]
   );
 
   return {

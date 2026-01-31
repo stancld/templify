@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { LogOut, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { LogOut, User, Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export function UserMenu() {
@@ -47,6 +48,14 @@ export function UserMenu() {
             <p className="text-sm text-gray-500">Signed in as</p>
             <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
           </div>
+          <Link
+            to="/profile"
+            onClick={() => setIsOpen(false)}
+            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <Settings size={16} />
+            Profile settings
+          </Link>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"

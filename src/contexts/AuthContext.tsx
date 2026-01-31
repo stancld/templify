@@ -12,6 +12,8 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updatePassword: (password: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -98,6 +100,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   }, [isSupabaseEnabled]);
 
+  const resetPassword = useCallback(
+    async (email: string) => {
+      if (!isSupabaseEnabled) {
+        return { error: { message: 'Supabase not configured' } as AuthError };
+      }
+      const supabase = getSupabaseClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      return { error };
+    },
+    [isSupabaseEnabled]
+  );
+
+  const updatePassword = useCallback(
+    async (password: string) => {
+      if (!isSupabaseEnabled) {
+        return { error: { message: 'Supabase not configured' } as AuthError };
+      }
+      const supabase = getSupabaseClient();
+      const { error } = await supabase.auth.updateUser({ password });
+      return { error };
+    },
+    [isSupabaseEnabled]
+  );
+
   const value: AuthContextValue = {
     user,
     session,
@@ -108,6 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signInWithGoogle,
     signOut,
+    resetPassword,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
