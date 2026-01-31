@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { UploadZone } from './upload/UploadZone';
 import { TemplatesList } from './templates/TemplatesList';
@@ -6,14 +6,13 @@ import { useTemplates } from '../hooks/useTemplates';
 import { useAuth } from '../hooks/useAuth';
 import { Sparkles, Zap, FileCheck, Linkedin, Twitter, Github, LogIn } from 'lucide-react';
 import { Template } from '../types';
-import { saveTemplateWithBlob } from '../services/storage';
 import { generateId } from '../utils/id';
 import { pluralize } from '../utils/text';
 import { UserMenu } from './auth/UserMenu';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { templates, deleteTemplate, refreshTemplates } = useTemplates();
+  const { templates, deleteTemplate, saveTemplate } = useTemplates();
   const { isSupabaseEnabled, isAuthenticated } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -24,7 +23,7 @@ export const LandingPage: React.FC = () => {
 
     try {
       const newTemplate: Template = {
-        id: generateId('template'),
+        id: generateId(),
         name: file.name.replace('.docx', ''),
         originalDocx: file,
         htmlContent: '',
@@ -32,13 +31,12 @@ export const LandingPage: React.FC = () => {
         createdAt: new Date(),
       };
 
-      await saveTemplateWithBlob(newTemplate);
-      refreshTemplates();
-
+      await saveTemplate(newTemplate);
       void navigate(`/editor/${newTemplate.id}`);
     } catch (error) {
       console.error('Error processing file:', error);
-      setUploadError('Failed to process document. Please ensure the file is a valid .docx file.');
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setUploadError(`Failed to process document: ${message}`);
       setIsUploading(false);
     }
   };
@@ -86,13 +84,15 @@ export const LandingPage: React.FC = () => {
             </h1>
             <p className="text-xl text-neutral-gray max-w-3xl mx-auto mb-8">
               Upload a Word doc, highlight fields, fill a spreadsheet, download filled documents.
-              No account needed. Your files stay in your browser.
+              {isSupabaseEnabled
+                ? ' No account needed—or sign in to sync templates across devices and colleagues.'
+                : ' No account needed. Your files stay in your browser.'}
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <Zap size={18} className="text-accent-green" />
-                <span className="text-sm font-medium">No Sign-up</span>
+                <span className="text-sm font-medium">{isSupabaseEnabled ? 'Sign-in Optional' : 'No Sign-up'}</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <Sparkles size={18} className="text-primary" />

@@ -36,7 +36,7 @@ export function UserMenu() {
         <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
           <User size={16} className="text-white" />
         </div>
-        <span className="text-sm text-gray-700 max-w-[150px] truncate hidden sm:block">
+        <span className="text-sm text-gray-700 hidden sm:block">
           {user.email}
         </span>
       </button>

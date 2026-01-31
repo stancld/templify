@@ -27,7 +27,7 @@ export async function generateDocument(
   });
 
   return {
-    id: generateId('doc'),
+    id: generateId(),
     templateId: template.id,
     dataRowId: dataRow.id,
     docxBlob: blob,

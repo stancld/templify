@@ -1,47 +1,59 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Template, Field } from '../types';
 import { loadTemplateWithBlob, saveTemplateWithBlob } from '../services/storage';
+import { getTemplateById, saveTemplateToSupabase } from '../services/supabase-storage';
 import { generateId } from '../utils/id';
+import { useAuth } from './useAuth';
 
 export const useTemplateEditor = (templateId: string) => {
+  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
+
   useEffect(() => {
-    loadTemplate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateId]);
+    const loadTemplate = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const loadTemplate = () => {
-    try {
-      setLoading(true);
-      setError(null);
+        let loaded: Template | null;
 
-      const loaded = loadTemplateWithBlob(templateId);
+        if (useSupabase) {
+          loaded = await getTemplateById(templateId);
+        } else {
+          loaded = loadTemplateWithBlob(templateId);
+        }
 
-      if (!loaded) {
-        setError('Template not found');
+        if (!loaded) {
+          setError('Template not found');
+          setLoading(false);
+          return;
+        }
+
+        setTemplate(loaded);
         setLoading(false);
-        return;
+      } catch (err) {
+        console.error('Error loading template:', err);
+        setError('Failed to load template');
+        setLoading(false);
       }
+    };
 
-      setTemplate(loaded);
-      setLoading(false);
-    } catch (err) {
-      console.error('Error loading template:', err);
-      setError('Failed to load template');
-      setLoading(false);
-    }
-  };
+    void loadTemplate();
+  }, [templateId, useSupabase]);
 
-  const handlePlainTextExtracted = useCallback((_text: string) => {
-    // Callback passed to DocumentViewer; kept for interface compatibility
-  }, []);
+  const handlePlainTextExtracted = useCallback((_text: string) => {}, []);
 
   const saveTemplate = async (updatedTemplate: Template) => {
     try {
-      await saveTemplateWithBlob(updatedTemplate);
+      if (useSupabase) {
+        await saveTemplateToSupabase(updatedTemplate, user.id);
+      } else {
+        await saveTemplateWithBlob(updatedTemplate);
+      }
       setTemplate(updatedTemplate);
     } catch (err) {
       console.error('Error saving template:', err);
@@ -57,7 +69,7 @@ export const useTemplateEditor = (templateId: string) => {
 
     const newField: Field = {
       ...fieldData,
-      id: generateId('field'),
+      id: generateId(),
     };
 
     const updatedTemplate = {
@@ -119,7 +131,6 @@ export const useTemplateEditor = (templateId: string) => {
     updateField,
     deleteField,
     updateTemplateName,
-    refreshTemplate: loadTemplate,
     handlePlainTextExtracted,
   };
 };

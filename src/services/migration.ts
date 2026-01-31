@@ -70,7 +70,7 @@ const migrateDataRowsToSessions = (): void => {
     const templateName = template?.name || 'Unknown Template';
 
     const session: DataSession = {
-      id: generateId('session'),
+      id: generateId(),
       templateId,
       name: `${templateName} - Migrated Data`,
       createdAt: now,

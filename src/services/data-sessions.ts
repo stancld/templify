@@ -60,7 +60,7 @@ export const getOrCreateSession = (templateId: string, templateName: string): Da
   });
 
   const session: DataSession = {
-    id: generateId('session'),
+    id: generateId(),
     templateId,
     name: `${templateName} - ${dateStr}`,
     createdAt: now,

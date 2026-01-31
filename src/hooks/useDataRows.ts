@@ -1,34 +1,74 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { DataRow, DataSession, Field } from '../types';
 import { generateId } from '../utils/id';
-import { loadAllDataRows, saveDataRows, matchFieldValue } from '../services/data-rows';
+import { loadAllDataRows, saveDataRows as saveDataRowsLocal, matchFieldValue } from '../services/data-rows';
+import {
+  getDataRowsForSessionFromSupabase,
+  saveDataRowsToSupabase,
+} from '../services/supabase-data-rows';
+import { useAuth } from './useAuth';
 
-export const useDataRows = (session: DataSession, fields: Field[]) => {
-  const { id: sessionId, templateId } = session;
+export const useDataRows = (session: DataSession | null, fields: Field[]) => {
+  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
+  const [rows, setRows] = useState<DataRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const initialRows = useMemo(() => {
-    const stored = loadAllDataRows();
-    return stored[sessionId] || [];
-  }, [sessionId]);
+  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
+  const sessionId = session?.id || '';
+  const templateId = session?.templateId || '';
 
-  const [rows, setRows] = useState<DataRow[]>(initialRows);
+  useEffect(() => {
+    if (!sessionId) {
+      setRows([]);
+      setLoading(false);
+      return;
+    }
+
+    const loadRows = async () => {
+      setLoading(true);
+      try {
+        if (useSupabase) {
+          const supabaseRows = await getDataRowsForSessionFromSupabase(sessionId);
+          setRows(supabaseRows);
+        } else {
+          const stored = loadAllDataRows();
+          setRows(stored[sessionId] || []);
+        }
+      } catch (error) {
+        console.error('Error loading rows:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadRows();
+  }, [sessionId, useSupabase]);
 
   const saveRows = useCallback(
-    (newRows: DataRow[]) => {
+    async (newRows: DataRow[]) => {
       if (!sessionId) {
         return;
       }
-      const stored = loadAllDataRows();
-      stored[sessionId] = newRows;
-      saveDataRows(stored);
       setRows(newRows);
+
+      try {
+        if (useSupabase && user) {
+          await saveDataRowsToSupabase(sessionId, templateId, user.id, newRows);
+        } else {
+          const stored = loadAllDataRows();
+          stored[sessionId] = newRows;
+          saveDataRowsLocal(stored);
+        }
+      } catch (error) {
+        console.error('Error saving rows:', error);
+      }
     },
-    [sessionId]
+    [sessionId, templateId, useSupabase, user]
   );
 
   const addRow = useCallback(() => {
     const newRow: DataRow = {
-      id: generateId('row'),
+      id: generateId(),
       templateId,
       sessionId,
       values: fields.reduce(
@@ -39,7 +79,7 @@ export const useDataRows = (session: DataSession, fields: Field[]) => {
         {} as Record<string, string>
       ),
     };
-    saveRows([...rows, newRow]);
+    void saveRows([...rows, newRow]);
     return newRow;
   }, [rows, templateId, sessionId, fields, saveRows]);
 
@@ -48,7 +88,7 @@ export const useDataRows = (session: DataSession, fields: Field[]) => {
       const updatedRows = rows.map((row) =>
         row.id === rowId ? { ...row, values: { ...row.values, [fieldId]: value } } : row
       );
-      saveRows(updatedRows);
+      void saveRows(updatedRows);
     },
     [rows, saveRows]
   );
@@ -56,19 +96,19 @@ export const useDataRows = (session: DataSession, fields: Field[]) => {
   const deleteRow = useCallback(
     (rowId: string) => {
       const filtered = rows.filter((row) => row.id !== rowId);
-      saveRows(filtered);
+      void saveRows(filtered);
     },
     [rows, saveRows]
   );
 
   const deleteAllRows = useCallback(() => {
-    saveRows([]);
+    void saveRows([]);
   }, [saveRows]);
 
   const importRows = useCallback(
     (data: Record<string, string>[]) => {
       const newRows: DataRow[] = data.map((item) => ({
-        id: generateId('row'),
+        id: generateId(),
         templateId,
         sessionId,
         values: Object.fromEntries(
@@ -76,7 +116,7 @@ export const useDataRows = (session: DataSession, fields: Field[]) => {
         ),
       }));
 
-      saveRows([...rows, ...newRows]);
+      void saveRows([...rows, ...newRows]);
       return newRows.length;
     },
     [rows, templateId, sessionId, fields, saveRows]
@@ -84,6 +124,7 @@ export const useDataRows = (session: DataSession, fields: Field[]) => {
 
   return {
     rows,
+    loading,
     addRow,
     updateRow,
     deleteRow,

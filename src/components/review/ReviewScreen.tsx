@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -13,44 +13,68 @@ import { ReviewFieldSidebar } from './ReviewFieldSidebar';
 import { FieldConnector } from '../editor/FieldConnector';
 import { useDocumentGenerator } from '../../hooks/useDocumentGenerator';
 import { useDataSession } from '../../hooks/useDataSessions';
-import { loadTemplateWithBlob } from '../../services/storage';
+import { useTemplateLoader } from '../../hooks/useTemplateLoader';
+import { useAuth } from '../../hooks/useAuth';
 import { getDataRowsForSession } from '../../services/data-rows';
+import { getDataRowsForSessionFromSupabase } from '../../services/supabase-data-rows';
 import { pluralize } from '../../utils/text';
+import { DataRow } from '../../types';
 
 export const ReviewScreen: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
+  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
   const [fieldCardRect, setFieldCardRect] = useState<DOMRect | null>(null);
 
-  const { template, error: loadError } = useMemo(() => {
-    if (!templateId) {
-      return { template: null, error: 'No template ID provided' };
-    }
-    const loaded = loadTemplateWithBlob(templateId);
-    if (!loaded) {
-      return { template: null, error: 'Template not found' };
-    }
-    return { template: loaded, error: null };
-  }, [templateId]);
+  const { template, loading: templateLoading, error: loadError } = useTemplateLoader(templateId);
 
-  const { session } = useDataSession(
+  const [dataRows, setDataRows] = useState<DataRow[]>([]);
+  const [dataRowsLoading, setDataRowsLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+
+  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
+
+  const { session, loading: sessionLoading } = useDataSession(
     templateId || '',
     template?.name || ''
   );
 
-  const { dataRows, error: dataError } = useMemo(() => {
-    if (!session.id) {
-      return { dataRows: [], error: 'No data session found' };
+  useEffect(() => {
+    if (!session?.id) {
+      setDataRowsLoading(false);
+      return;
     }
-    const rows = getDataRowsForSession(session.id);
-    if (rows.length === 0) {
-      return { dataRows: [], error: 'No data rows found' };
-    }
-    return { dataRows: rows, error: null };
-  }, [session.id]);
+
+    const loadDataRows = async () => {
+      try {
+        setDataRowsLoading(true);
+        let rows: DataRow[];
+
+        if (useSupabase) {
+          rows = await getDataRowsForSessionFromSupabase(session.id);
+        } else {
+          rows = getDataRowsForSession(session.id);
+        }
+
+        if (rows.length === 0) {
+          setDataError('No data rows found');
+        } else {
+          setDataRows(rows);
+        }
+      } catch (error) {
+        console.error('Error loading data rows:', error);
+        setDataError('Failed to load data rows');
+      } finally {
+        setDataRowsLoading(false);
+      }
+    };
+
+    void loadDataRows();
+  }, [session?.id, useSupabase]);
 
   const { documents, isGenerating, progress, error: genError, generate, downloadSingle, downloadAll } =
     useDocumentGenerator();
@@ -76,7 +100,9 @@ export const ReviewScreen: React.FC = () => {
   };
 
   const handleDownloadCurrent = () => {
-    if (!template || !documents[currentIndex]) {return;}
+    if (!template || !documents[currentIndex]) {
+      return;
+    }
     const row = dataRows[currentIndex];
     const firstFieldValue = row?.values[template.schema[0]?.id] || `document_${currentIndex + 1}`;
     const safeFilename = firstFieldValue.replace(/[^a-zA-Z0-9-_]/g, '_').substring(0, 50);
@@ -84,7 +110,9 @@ export const ReviewScreen: React.FC = () => {
   };
 
   const handleDownloadAll = async () => {
-    if (!template) {return;}
+    if (!template) {
+      return;
+    }
     await downloadAll(template, dataRows);
   };
 
@@ -99,6 +127,16 @@ export const ReviewScreen: React.FC = () => {
   const handleFieldCardRectChange = useCallback((rect: DOMRect | null) => {
     setFieldCardRect(rect);
   }, []);
+
+  const isLoading = templateLoading || sessionLoading || dataRowsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
 
   if (loadError || dataError || !template) {
     return (
@@ -162,7 +200,7 @@ export const ReviewScreen: React.FC = () => {
               <ArrowLeft size={20} className="text-neutral-dark" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-neutral-dark">{session.name}</h1>
+              <h1 className="text-2xl font-bold text-neutral-dark">{session?.name || template.name}</h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <FileCheck size={14} className="text-green-500" />
                 <p className="text-sm text-neutral-gray">

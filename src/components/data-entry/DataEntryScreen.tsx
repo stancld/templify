@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Trash2, FileText, ArrowRight } from 'lucide-react';
 import { SpreadsheetGrid } from './SpreadsheetGrid';
@@ -6,32 +6,23 @@ import { ImportDialog } from './ImportDialog';
 import { EditableSessionTitle } from './EditableSessionTitle';
 import { useDataRows } from '../../hooks/useDataRows';
 import { useDataSession } from '../../hooks/useDataSessions';
-import { loadTemplateWithBlob } from '../../services/storage';
+import { useTemplateLoader } from '../../hooks/useTemplateLoader';
 import { pluralize } from '../../utils/text';
 
 export const DataEntryScreen: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
 
-  const { template, error } = useMemo(() => {
-    if (!templateId) {
-      return { template: null, error: 'No template ID provided' };
-    }
-    const loaded = loadTemplateWithBlob(templateId);
-    if (!loaded) {
-      return { template: null, error: 'Template not found' };
-    }
-    return { template: loaded, error: null };
-  }, [templateId]);
+  const { template, loading: templateLoading, error: templateError } = useTemplateLoader(templateId);
 
-  const { session, updateSessionName } = useDataSession(
+  const { session, loading: sessionLoading, updateSessionName } = useDataSession(
     templateId || '',
     template?.name || ''
   );
 
   const [isImportOpen, setIsImportOpen] = useState(false);
 
-  const { rows, addRow, updateRow, deleteRow, deleteAllRows, importRows } = useDataRows(
+  const { rows, loading: rowsLoading, addRow, updateRow, deleteRow, deleteAllRows, importRows } = useDataRows(
     session,
     template?.schema || []
   );
@@ -58,14 +49,24 @@ export const DataEntryScreen: React.FC = () => {
   };
 
   const handleSessionRename = (newName: string) => {
-    updateSessionName(newName);
+    void updateSessionName(newName);
   };
 
-  if (error || !template) {
+  const isLoading = templateLoading || sessionLoading || rowsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  if (templateError || !template) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Template not found'}</p>
+          <p className="text-red-600 mb-4">{templateError || 'Template not found'}</p>
           <button onClick={() => void navigate('/')} className="btn-primary">
             Back to Home
           </button>
@@ -87,7 +88,7 @@ export const DataEntryScreen: React.FC = () => {
             </button>
             <div>
               <EditableSessionTitle
-                title={session.name}
+                title={session?.name || ''}
                 onSave={handleSessionRename}
               />
               <p className="text-sm text-neutral-gray">
