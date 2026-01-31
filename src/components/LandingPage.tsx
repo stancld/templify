@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { UploadZone } from './upload/UploadZone';
 import { TemplatesList } from './templates/TemplatesList';
 import { useTemplates } from '../hooks/useTemplates';
-import { Sparkles, Zap, FileCheck, Linkedin, Twitter, Github } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { Sparkles, Zap, FileCheck, Linkedin, Twitter, Github, LogIn } from 'lucide-react';
 import { Template } from '../types';
 import { saveTemplateWithBlob } from '../services/storage';
 import { generateId } from '../utils/id';
 import { pluralize } from '../utils/text';
+import { UserMenu } from './auth/UserMenu';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { templates, deleteTemplate, refreshTemplates } = useTemplates();
+  const { isSupabaseEnabled, isAuthenticated } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -52,10 +55,31 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30">
+      {isSupabaseEnabled && (
+        <header className="relative z-10 flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="text-xl font-bold">
+            <span className="gradient-text">Templify</span>
+          </div>
+          <div>
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+              >
+                <LogIn size={16} />
+                Sign In
+              </Link>
+            )}
+          </div>
+        </header>
+      )}
+
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-purple/5" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+        <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isSupabaseEnabled ? 'pt-8' : 'pt-20'} pb-16`}>
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
               <span className="gradient-text">Fill templates</span> in bulk
