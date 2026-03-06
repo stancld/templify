@@ -21,7 +21,7 @@ Templify is a shared `.docx` document automation workspace for a single customer
 
 - Upload `.docx` templates into a shared workspace
 - Define fields by highlighting text in the rendered document
-- Rename templates and data-entry sessions inline
+- Rename templates inline
 - Enter data in a spreadsheet UI
 - Import rows from CSV
 - Generate one document per row

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Trash2, FileText, ArrowRight } from 'lucide-react';
 import { SpreadsheetGrid } from './SpreadsheetGrid';
 import { ImportDialog } from './ImportDialog';
-import { EditableSessionTitle } from './EditableSessionTitle';
 import { useDataRows } from '../../hooks/useDataRows';
 import { useDataSession } from '../../hooks/useDataSessions';
 import { useTemplateLoader } from '../../hooks/useTemplateLoader';
@@ -17,7 +16,7 @@ export const DataEntryScreen: React.FC = () => {
 
   const { template, loading: templateLoading, error: templateError } = useTemplateLoader(templateId);
 
-  const { session, loading: sessionLoading, updateSessionName } = useDataSession(
+  const { session, loading: sessionLoading } = useDataSession(
     templateId || '',
     template?.name || ''
   );
@@ -48,10 +47,6 @@ export const DataEntryScreen: React.FC = () => {
       return;
     }
     void navigate(`/review/${templateId}`);
-  };
-
-  const handleSessionRename = (newName: string) => {
-    void updateSessionName(newName);
   };
 
   const isLoading = templateLoading || sessionLoading || rowsLoading;
@@ -89,12 +84,9 @@ export const DataEntryScreen: React.FC = () => {
               <ArrowLeft size={20} className="text-neutral-dark" />
             </button>
             <div>
-              <EditableSessionTitle
-                title={session?.name || ''}
-                onSave={handleSessionRename}
-              />
+              <h1 className="text-2xl font-bold text-neutral-dark">{template.name}</h1>
               <p className="text-sm text-neutral-gray">
-                {template.name} • {template.schema.length} {pluralize(template.schema.length, 'field')}
+                {template.schema.length} {pluralize(template.schema.length, 'field')}
               </p>
             </div>
           </div>

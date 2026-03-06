@@ -1,9 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DataSession } from '../types';
-import {
-  getOrCreateSessionInSupabase,
-  updateSessionNameInSupabase,
-} from '../services/supabase-data-sessions';
+import { getOrCreateSessionInSupabase } from '../services/supabase-data-sessions';
 import { useAuth } from './useAuth';
 
 export const useDataSession = (templateId: string, templateName: string) => {
@@ -40,29 +37,8 @@ export const useDataSession = (templateId: string, templateName: string) => {
     void loadSession();
   }, [templateId, templateName, user]);
 
-  const updateSessionName = useCallback(
-    async (name: string) => {
-      if (!session) {
-        return null;
-      }
-
-      try {
-        const updated = await updateSessionNameInSupabase(session.id, name);
-        if (updated) {
-          setSession(updated);
-        }
-        return updated;
-      } catch (error) {
-        console.error('Error updating session name:', error);
-        return null;
-      }
-    },
-    [session]
-  );
-
   return {
     session,
     loading,
-    updateSessionName,
   };
 };

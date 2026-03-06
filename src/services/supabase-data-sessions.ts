@@ -89,32 +89,3 @@ export async function getOrCreateSessionInSupabase(
   }
   return createSessionInSupabase(templateId, templateName, userId);
 }
-
-export async function updateSessionNameInSupabase(
-  sessionId: string,
-  name: string
-): Promise<DataSession | null> {
-  const supabase = getSupabaseClient();
-
-  /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-  const { data, error } = await (supabase.from('data_sessions') as any)
-    .update({ title: name, updated_at: new Date().toISOString() })
-    .eq('id', sessionId)
-    .select()
-    .single();
-  /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
-
-  if (error) {
-    console.error('Error updating session:', error);
-    throw error;
-  }
-
-  const row = data as SessionRow;
-  return {
-    id: row.id,
-    templateId: row.template_id,
-    name: row.title,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
-  };
-}

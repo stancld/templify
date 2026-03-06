@@ -189,7 +189,7 @@ export const ReviewScreen: React.FC = () => {
               <ArrowLeft size={20} className="text-neutral-dark" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-neutral-dark">{session?.name || template.name}</h1>
+              <h1 className="text-2xl font-bold text-neutral-dark">{template.name}</h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <FileCheck size={14} className="text-green-500" />
                 <p className="text-sm text-neutral-gray">

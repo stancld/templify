@@ -6,7 +6,7 @@ import { DocumentViewer, TextSelection } from './DocumentViewer';
 import { FieldSidebar } from './FieldSidebar';
 import { FieldDefinitionModal } from './FieldDefinitionModal';
 import { FieldConnector } from './FieldConnector';
-import { EditableSessionTitle } from '../data-entry/EditableSessionTitle';
+import { EditableTitle } from '../data-entry/EditableSessionTitle';
 import { Field } from '../../types';
 import { pluralize } from '../../utils/text';
 
@@ -191,9 +191,10 @@ export const TemplateEditor: React.FC = () => {
               <ArrowLeft size={20} className="text-neutral-dark" />
             </button>
             <div>
-              <EditableSessionTitle
+              <EditableTitle
                 title={template.name}
                 onSave={(newName) => void updateTemplateName(newName)}
+                emptyLabel="Untitled Template"
               />
               <p className="text-sm text-neutral-gray">
                 {template.schema.length} {pluralize(template.schema.length, 'field')} defined

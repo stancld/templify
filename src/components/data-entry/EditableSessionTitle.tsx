@@ -1,14 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 
-interface EditableSessionTitleProps {
+interface EditableTitleProps {
   title: string;
   onSave: (newTitle: string) => void;
+  emptyLabel?: string;
 }
 
-export const EditableSessionTitle: React.FC<EditableSessionTitleProps> = ({
+export const EditableTitle: React.FC<EditableTitleProps> = ({
   title,
   onSave,
+  emptyLabel = 'Untitled',
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(title);
@@ -74,7 +76,7 @@ export const EditableSessionTitle: React.FC<EditableSessionTitleProps> = ({
       className="group flex items-center gap-2 hover:bg-neutral-light/50 rounded px-1 -mx-1 transition-colors cursor-pointer"
     >
       <h1 className="text-2xl font-bold text-neutral-dark">
-        {title || 'Untitled Session'}
+        {title || emptyLabel}
       </h1>
       <Pencil
         size={16}
