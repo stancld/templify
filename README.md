@@ -139,7 +139,7 @@ Notable files:
 - [src/contexts/AuthContext.tsx](/Users/daniel.stancl/projects/templify/src/contexts/AuthContext.tsx) loads auth state and the app role from Supabase.
 - [src/services/supabase-storage.ts](/Users/daniel.stancl/projects/templify/src/services/supabase-storage.ts) handles template persistence and `.docx` loading.
 - [src/services/docx-generator.ts](/Users/daniel.stancl/projects/templify/src/services/docx-generator.ts) generates final documents and ZIP downloads in-browser.
-- [api/og.tsx](/Users/daniel.stancl/projects/templify/api/og.tsx) provides the Vercel OG image endpoint.
+- [api/og.mjs](/Users/daniel.stancl/projects/templify/api/og.mjs) provides the Vercel OG image endpoint.
 
 ## Deployment Notes
 
