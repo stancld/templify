@@ -1,11 +1,7 @@
-import React from 'react';
-import { ImageResponse } from '@vercel/og';
+const React = require('react');
+const { ImageResponse } = require('@vercel/og');
 
-export const config = {
-  runtime: 'nodejs',
-};
-
-export default async function handler() {
+module.exports = async function handler() {
   try {
     return new ImageResponse(
       React.createElement(
@@ -107,7 +103,11 @@ export default async function handler() {
       headers: { 'Content-Type': 'text/plain' },
     });
   }
-}
+};
+
+module.exports.config = {
+  runtime: 'nodejs',
+};
 
 function createStep(number, label) {
   return React.createElement(
