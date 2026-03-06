@@ -1,8 +1,9 @@
 const React = require('react');
-const { ImageResponse } = require('@vercel/og');
 
 module.exports = async function handler() {
   try {
+    const { ImageResponse } = await import('@vercel/og');
+
     return new ImageResponse(
       React.createElement(
         'div',
