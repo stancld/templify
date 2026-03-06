@@ -1,18 +1,16 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import type { AppRole } from '../types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  allowedRoles?: AppRole[];
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isSupabaseEnabled, isAuthenticated, loading } = useAuth();
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+  const { isAuthenticated, loading, role } = useAuth();
   const location = useLocation();
-
-  if (!isSupabaseEnabled) {
-    return <>{children}</>;
-  }
 
   if (loading) {
     return (
@@ -24,6 +22,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!role) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

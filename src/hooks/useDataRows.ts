@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { DataRow, DataSession, Field } from '../types';
 import { generateId } from '../utils/id';
-import { loadAllDataRows, saveDataRows as saveDataRowsLocal, matchFieldValue } from '../services/data-rows';
+import { matchFieldValue } from '../services/data-rows';
 import {
   getDataRowsForSessionFromSupabase,
   saveDataRowsToSupabase,
@@ -9,11 +9,10 @@ import {
 import { useAuth } from './useAuth';
 
 export const useDataRows = (session: DataSession | null, fields: Field[]) => {
-  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [rows, setRows] = useState<DataRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
   const sessionId = session?.id || '';
   const templateId = session?.templateId || '';
 
@@ -27,13 +26,8 @@ export const useDataRows = (session: DataSession | null, fields: Field[]) => {
     const loadRows = async () => {
       setLoading(true);
       try {
-        if (useSupabase) {
-          const supabaseRows = await getDataRowsForSessionFromSupabase(sessionId);
-          setRows(supabaseRows);
-        } else {
-          const stored = loadAllDataRows();
-          setRows(stored[sessionId] || []);
-        }
+        const supabaseRows = await getDataRowsForSessionFromSupabase(sessionId);
+        setRows(supabaseRows);
       } catch (error) {
         console.error('Error loading rows:', error);
       } finally {
@@ -42,7 +36,7 @@ export const useDataRows = (session: DataSession | null, fields: Field[]) => {
     };
 
     void loadRows();
-  }, [sessionId, useSupabase]);
+  }, [sessionId]);
 
   const saveRows = useCallback(
     async (newRows: DataRow[]) => {
@@ -52,18 +46,16 @@ export const useDataRows = (session: DataSession | null, fields: Field[]) => {
       setRows(newRows);
 
       try {
-        if (useSupabase && user) {
+        if (user) {
           await saveDataRowsToSupabase(sessionId, templateId, user.id, newRows);
         } else {
-          const stored = loadAllDataRows();
-          stored[sessionId] = newRows;
-          saveDataRowsLocal(stored);
+          throw new Error('User is required to save rows');
         }
       } catch (error) {
         console.error('Error saving rows:', error);
       }
     },
-    [sessionId, templateId, useSupabase, user]
+    [sessionId, templateId, user]
   );
 
   const addRow = useCallback(() => {

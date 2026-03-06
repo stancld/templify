@@ -5,13 +5,15 @@ import { FileQuestion } from 'lucide-react';
 
 interface TemplatesListProps {
   templates: Template[];
-  onEdit: (template: Template) => void;
-  onDelete: (id: string) => void;
+  onPrimaryAction: (template: Template) => void;
+  primaryLabel: string;
+  onDelete?: (id: string) => void;
 }
 
 export const TemplatesList: React.FC<TemplatesListProps> = ({
   templates,
-  onEdit,
+  onPrimaryAction,
+  primaryLabel,
   onDelete,
 }) => {
   if (templates.length === 0) {
@@ -36,7 +38,8 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
         <TemplateCard
           key={template.id}
           template={template}
-          onEdit={onEdit}
+          onPrimaryAction={onPrimaryAction}
+          primaryLabel={primaryLabel}
           onDelete={onDelete}
         />
       ))}

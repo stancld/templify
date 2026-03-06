@@ -38,3 +38,5 @@ export interface GeneratedDocument {
   docxBlob: Blob;
   createdAt: Date;
 }
+
+export type AppRole = 'admin' | 'member';

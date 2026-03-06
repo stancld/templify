@@ -3,27 +3,21 @@ import type { Field } from '../types';
 export interface Database {
   public: {
     Tables: {
-      profiles: {
+      user_roles: {
         Row: {
-          id: string;
-          display_name: string | null;
-          avatar_url: string | null;
+          user_id: string;
+          role: 'admin' | 'member';
           created_at: string;
-          updated_at: string;
         };
         Insert: {
-          id: string;
-          display_name?: string | null;
-          avatar_url?: string | null;
+          user_id: string;
+          role: 'admin' | 'member';
           created_at?: string;
-          updated_at?: string;
         };
         Update: {
-          id?: string;
-          display_name?: string | null;
-          avatar_url?: string | null;
+          user_id?: string;
+          role?: 'admin' | 'member';
           created_at?: string;
-          updated_at?: string;
         };
       };
       templates: {

@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export function UserMenu() {
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -47,15 +46,8 @@ export function UserMenu() {
           <div className="px-4 py-2 border-b border-gray-100">
             <p className="text-sm text-gray-500">Signed in as</p>
             <p className="text-sm font-medium text-gray-900 truncate">{user.email}</p>
+            <p className="mt-1 text-xs uppercase tracking-wide text-gray-500">{role}</p>
           </div>
-          <Link
-            to="/profile"
-            onClick={() => setIsOpen(false)}
-            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <Settings size={16} />
-            Profile settings
-          </Link>
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"

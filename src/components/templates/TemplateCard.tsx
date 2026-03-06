@@ -5,13 +5,15 @@ import { pluralize } from '../../utils/text';
 
 interface TemplateCardProps {
   template: Template;
-  onEdit: (template: Template) => void;
-  onDelete: (id: string) => void;
+  onPrimaryAction: (template: Template) => void;
+  primaryLabel: string;
+  onDelete?: (id: string) => void;
 }
 
 export const TemplateCard: React.FC<TemplateCardProps> = ({
   template,
-  onEdit,
+  onPrimaryAction,
+  primaryLabel,
   onDelete
 }) => {
   const formatDate = (date: Date) => {
@@ -49,18 +51,20 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
 
       <div className="flex gap-2">
         <button
-          onClick={() => onEdit(template)}
+          onClick={() => onPrimaryAction(template)}
           className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors duration-200 flex items-center justify-center gap-2"
         >
           <Edit size={16} />
-          <span>Edit</span>
+          <span>{primaryLabel}</span>
         </button>
-        <button
-          onClick={() => onDelete(template.id)}
-          className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-200"
-        >
-          <Trash2 size={16} />
-        </button>
+        {onDelete && (
+          <button
+            onClick={() => onDelete(template.id)}
+            className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors duration-200"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     </div>
   );

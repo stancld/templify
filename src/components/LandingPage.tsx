@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { UploadZone } from './upload/UploadZone';
 import { TemplatesList } from './templates/TemplatesList';
 import { useTemplates } from '../hooks/useTemplates';
 import { useAuth } from '../hooks/useAuth';
-import { Sparkles, Zap, FileCheck, Linkedin, Twitter, Github, LogIn } from 'lucide-react';
+import { Sparkles, ShieldCheck, FileCheck, Linkedin, Twitter, Github } from 'lucide-react';
 import { Template } from '../types';
 import { generateId } from '../utils/id';
 import { pluralize } from '../utils/text';
@@ -13,7 +13,7 @@ import { UserMenu } from './auth/UserMenu';
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { templates, deleteTemplate, saveTemplate } = useTemplates();
-  const { isSupabaseEnabled, isAuthenticated } = useAuth();
+  const { isAdmin } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -41,8 +41,8 @@ export const LandingPage: React.FC = () => {
     }
   };
 
-  const handleEditTemplate = (template: Template) => {
-    void navigate(`/editor/${template.id}`);
+  const handlePrimaryAction = (template: Template) => {
+    void navigate(isAdmin ? `/editor/${template.id}` : `/data/${template.id}`);
   };
 
   const handleDeleteTemplate = (id: string) => {
@@ -53,72 +53,57 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30">
-      {isSupabaseEnabled && (
-        <header className="relative z-10 flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="text-xl font-bold">
-            <span className="gradient-text">Templify</span>
-          </div>
-          <div>
-            {isAuthenticated ? (
-              <UserMenu />
-            ) : (
-              <Link
-                to="/login"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
-              >
-                <LogIn size={16} />
-                Sign In
-              </Link>
-            )}
-          </div>
-        </header>
-      )}
+      <header className="relative z-10 flex items-center justify-between max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="text-xl font-bold">
+          <span className="gradient-text">Templify</span>
+        </div>
+        <UserMenu />
+      </header>
 
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-purple/5" />
 
-        <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${isSupabaseEnabled ? 'pt-8' : 'pt-20'} pb-16`}>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
           <div className="text-center mb-16">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
               <span className="gradient-text">Fill templates</span> in bulk
             </h1>
             <p className="text-xl text-neutral-gray max-w-3xl mx-auto mb-8">
-              Upload a Word doc, highlight fields, fill a spreadsheet, download filled documents.
-              {isSupabaseEnabled
-                ? ' No account needed—or sign in to sync templates across devices and colleagues.'
-                : ' No account needed. Your files stay in your browser.'}
+              Shared document workflows for one customer team. Admins manage templates, members fill data and generate documents.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
-                <Zap size={18} className="text-accent-green" />
-                <span className="text-sm font-medium">{isSupabaseEnabled ? 'Sign-in Optional' : 'No Sign-up'}</span>
+                <ShieldCheck size={18} className="text-accent-green" />
+                <span className="text-sm font-medium">Role-based Access</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <Sparkles size={18} className="text-primary" />
-                <span className="text-sm font-medium">No Install</span>
+                <span className="text-sm font-medium">Shared Workspace</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-neutral-gray/10">
                 <FileCheck size={18} className="text-accent-purple" />
-                <span className="text-sm font-medium">100% Private</span>
+                <span className="text-sm font-medium">Supabase Free Tier</span>
               </div>
             </div>
           </div>
 
-          <div className="max-w-3xl mx-auto mb-20">
-            <UploadZone onFileUpload={handleFileUpload} />
-            {isUploading && (
-              <div className="mt-4 text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
-                <p className="mt-2 text-neutral-gray">Processing your document...</p>
-              </div>
-            )}
-            {uploadError && (
-              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-                {uploadError}
-              </div>
-            )}
-          </div>
+          {isAdmin && (
+            <div className="max-w-3xl mx-auto mb-20">
+              <UploadZone onFileUpload={handleFileUpload} />
+              {isUploading && (
+                <div className="mt-4 text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
+                  <p className="mt-2 text-neutral-gray">Processing your document...</p>
+                </div>
+              )}
+              {uploadError && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+                  {uploadError}
+                </div>
+              )}
+            </div>
+          )}
 
           {templates.length > 0 && (
             <div className="max-w-7xl mx-auto">
@@ -135,9 +120,19 @@ export const LandingPage: React.FC = () => {
 
               <TemplatesList
                 templates={templates}
-                onEdit={handleEditTemplate}
-                onDelete={handleDeleteTemplate}
+                onPrimaryAction={handlePrimaryAction}
+                primaryLabel={isAdmin ? 'Edit' : 'Open'}
+                onDelete={isAdmin ? handleDeleteTemplate : undefined}
               />
+            </div>
+          )}
+
+          {templates.length === 0 && !isAdmin && (
+            <div className="max-w-2xl mx-auto bg-white/80 backdrop-blur rounded-2xl border border-white/60 shadow-lg p-8 text-center">
+              <h2 className="text-2xl font-semibold text-neutral-dark">No templates available</h2>
+              <p className="mt-3 text-neutral-gray">
+                An admin needs to upload and publish the first template before members can start data entry.
+              </p>
             </div>
           )}
         </div>

@@ -6,9 +6,9 @@
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Fill Word templates in bulk. No account needed.**
+**Fill Word templates in bulk for a fixed customer workspace.**
 
-Upload a Word document, highlight fields, fill in a spreadsheet, download filled documents. Simple as that.
+Admins manage templates. Members fill data and generate documents. Authentication and shared storage run on Supabase.
 
 ## ✨ Features
 
@@ -17,7 +17,8 @@ Upload a Word document, highlight fields, fill in a spreadsheet, download filled
 - 📊 **Spreadsheet Data Entry** – Fill data in a familiar grid
 - 📁 **CSV Import** – Already have data? Import it
 - ⚡ **Batch Generation** – Generate 1 or 100 documents at once
-- 🔒 **Privacy First** – Everything stays in your browser, nothing uploaded
+- 🔐 **Fixed Access** – Provisioned users only, with `admin` and `member` roles
+- ☁️ **Shared Backend** – Supabase Auth, Postgres, and Storage on the free tier
 
 ## 🚀 Quick Start
 
@@ -54,7 +55,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | Styling | TailwindCSS |
 | Routing | React Router v7 |
 | Document Processing | JSZip, docx-preview |
-| Storage | Browser localStorage |
+| Backend | Supabase Auth, Postgres, Storage |
 
 ## 📋 Available Scripts
 
@@ -68,10 +69,25 @@ npm run preview  # Preview production build
 ## 🗺️ Roadmap
 
 - [x] **Iteration 1**: MVP with browser storage ✅
-- [ ] **Iteration 2**: Backend API & user authentication
+- [x] **Iteration 2**: Shared Supabase backend with fixed users
 - [ ] **Iteration 3**: Enhanced UX (undo/redo, drag-and-drop)
 - [ ] **Iteration 4**: Advanced features (conditional fields, PDF export)
 - [ ] **Iteration 5**: Production deployment
+
+## Supabase Setup
+
+Create these environment variables before running the app:
+
+```bash
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+Provisioning model:
+
+- Disable public signup in Supabase Auth.
+- Create users manually in the Supabase dashboard.
+- Seed one `user_roles` row per auth user with role `admin` or `member`.
 
 ## 📄 License
 

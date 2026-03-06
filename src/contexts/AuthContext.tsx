@@ -1,143 +1,110 @@
 import { createContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
-import { getSupabaseClient, isSupabaseConfigured } from '../lib/supabase';
+import { getSupabaseClient } from '../lib/supabase';
+import type { AppRole } from '../types';
+import type { Database } from '../lib/database.types';
 
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
+  role: AppRole | null;
   loading: boolean;
   isAuthenticated: boolean;
-  isSupabaseEnabled: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
-  updatePassword: (password: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+type UserRoleRow = Pick<Database['public']['Tables']['user_roles']['Row'], 'role'>;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const isSupabaseEnabled = isSupabaseConfigured();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(isSupabaseEnabled);
+  const [role, setRole] = useState<AppRole | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isSupabaseEnabled) {
-      return;
-    }
-
     const supabase = getSupabaseClient();
     let mounted = true;
 
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    const loadRole = async (nextSession: Session | null) => {
+      if (!mounted) {
+        return;
       }
+
+      setSession(nextSession);
+      const nextUser = nextSession?.user ?? null;
+      setUser(nextUser);
+
+      if (!nextUser) {
+        setRole(null);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', nextUser.id)
+        .maybeSingle();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (error) {
+        console.error('Error loading user role:', error);
+        setRole(null);
+      } else {
+        const roleRow = data as UserRoleRow | null;
+        setRole(roleRow?.role ?? null);
+      }
+
+      setLoading(false);
+    };
+
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      void loadRole(session);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      setLoading(true);
+      void loadRole(session);
     });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [isSupabaseEnabled]);
-
-  const signUp = useCallback(
-    async (email: string, password: string) => {
-      if (!isSupabaseEnabled) {
-        return { error: { message: 'Supabase not configured' } as AuthError };
-      }
-      const supabase = getSupabaseClient();
-      const { error } = await supabase.auth.signUp({ email, password });
-      return { error };
-    },
-    [isSupabaseEnabled]
-  );
+  }, []);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      if (!isSupabaseEnabled) {
-        return { error: { message: 'Supabase not configured' } as AuthError };
-      }
       const supabase = getSupabaseClient();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error };
     },
-    [isSupabaseEnabled]
+    []
   );
 
-  const signInWithGoogle = useCallback(async () => {
-    if (!isSupabaseEnabled) {
-      return { error: { message: 'Supabase not configured' } as AuthError };
-    }
-    const supabase = getSupabaseClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-    return { error };
-  }, [isSupabaseEnabled]);
-
   const signOut = useCallback(async () => {
-    if (!isSupabaseEnabled) {
-      return { error: { message: 'Supabase not configured' } as AuthError };
-    }
     const supabase = getSupabaseClient();
     const { error } = await supabase.auth.signOut();
     return { error };
-  }, [isSupabaseEnabled]);
-
-  const resetPassword = useCallback(
-    async (email: string) => {
-      if (!isSupabaseEnabled) {
-        return { error: { message: 'Supabase not configured' } as AuthError };
-      }
-      const supabase = getSupabaseClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      return { error };
-    },
-    [isSupabaseEnabled]
-  );
-
-  const updatePassword = useCallback(
-    async (password: string) => {
-      if (!isSupabaseEnabled) {
-        return { error: { message: 'Supabase not configured' } as AuthError };
-      }
-      const supabase = getSupabaseClient();
-      const { error } = await supabase.auth.updateUser({ password });
-      return { error };
-    },
-    [isSupabaseEnabled]
-  );
+  }, []);
 
   const value: AuthContextValue = {
     user,
     session,
+    role,
     loading,
     isAuthenticated: !!user,
-    isSupabaseEnabled,
-    signUp,
+    isAdmin: role === 'admin',
     signIn,
-    signInWithGoogle,
     signOut,
-    resetPassword,
-    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

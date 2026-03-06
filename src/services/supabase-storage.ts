@@ -32,13 +32,12 @@ async function loadDocxBlob(row: TemplateRow): Promise<Blob> {
   throw new Error('No docx data available for template');
 }
 
-export async function getTemplatesForUser(userId: string): Promise<Template[]> {
+export async function getTemplates(): Promise<Template[]> {
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
     .from('templates')
     .select('*')
-    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -86,14 +85,15 @@ export async function getTemplateById(id: string): Promise<Template | null> {
     .from('templates')
     .select('*')
     .eq('id', id)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      return null;
-    }
     console.error('Error fetching template:', error);
     throw error;
+  }
+
+  if (!data) {
+    return null;
   }
 
   const row = data as unknown as TemplateRow;
@@ -140,7 +140,7 @@ export async function saveTemplateToSupabase(
 
 export async function deleteTemplateFromSupabase(
   id: string,
-  userId?: string
+  _userId?: string
 ): Promise<void> {
   const supabase = getSupabaseClient();
 
@@ -149,7 +149,7 @@ export async function deleteTemplateFromSupabase(
     .from('templates')
     .select('docx_path')
     .eq('id', id)
-    .single();
+    .maybeSingle();
 
   // Delete from Storage if path exists
   const row = data as unknown as { docx_path: string | null } | null;
@@ -160,10 +160,10 @@ export async function deleteTemplateFromSupabase(
       console.error('Error deleting docx from storage:', err);
       // Continue with database deletion even if storage deletion fails
     }
-  } else if (userId) {
-    // Try to delete using the standard path format
+  } else {
+    // Try to delete using the shared path format
     try {
-      await deleteDocx(`${userId}/${id}.docx`);
+      await deleteDocx(`templates/${id}.docx`);
     } catch {
       // Ignore - file may not exist
     }

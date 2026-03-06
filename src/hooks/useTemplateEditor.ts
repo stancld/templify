@@ -1,17 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Template, Field } from '../types';
-import { loadTemplateWithBlob, saveTemplateWithBlob } from '../services/storage';
 import { getTemplateById, saveTemplateToSupabase } from '../services/supabase-storage';
 import { generateId } from '../utils/id';
 import { useAuth } from './useAuth';
 
 export const useTemplateEditor = (templateId: string) => {
-  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
 
   useEffect(() => {
     const loadTemplate = async () => {
@@ -19,13 +16,7 @@ export const useTemplateEditor = (templateId: string) => {
         setLoading(true);
         setError(null);
 
-        let loaded: Template | null;
-
-        if (useSupabase) {
-          loaded = await getTemplateById(templateId);
-        } else {
-          loaded = loadTemplateWithBlob(templateId);
-        }
+        const loaded = await getTemplateById(templateId);
 
         if (!loaded) {
           setError('Template not found');
@@ -43,17 +34,17 @@ export const useTemplateEditor = (templateId: string) => {
     };
 
     void loadTemplate();
-  }, [templateId, useSupabase]);
+  }, [templateId]);
 
   const handlePlainTextExtracted = useCallback((_text: string) => {}, []);
 
   const saveTemplate = async (updatedTemplate: Template) => {
     try {
-      if (useSupabase) {
-        await saveTemplateToSupabase(updatedTemplate, user.id);
-      } else {
-        await saveTemplateWithBlob(updatedTemplate);
+      if (!user) {
+        throw new Error('User is required to save templates');
       }
+
+      await saveTemplateToSupabase(updatedTemplate, user.id);
       setTemplate(updatedTemplate);
     } catch (err) {
       console.error('Error saving template:', err);

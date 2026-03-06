@@ -1,21 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { DataSession } from '../types';
 import {
-  getOrCreateSession,
-  updateSessionName as updateSessionNameLocal,
-} from '../services/data-sessions';
-import {
   getOrCreateSessionInSupabase,
   updateSessionNameInSupabase,
 } from '../services/supabase-data-sessions';
 import { useAuth } from './useAuth';
 
 export const useDataSession = (templateId: string, templateName: string) => {
-  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const [session, setSession] = useState<DataSession | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
 
   useEffect(() => {
     if (!templateId || !templateName) {
@@ -26,17 +20,16 @@ export const useDataSession = (templateId: string, templateName: string) => {
     const loadSession = async () => {
       setLoading(true);
       try {
-        if (useSupabase) {
-          const supabaseSession = await getOrCreateSessionInSupabase(
-            templateId,
-            templateName,
-            user.id
-          );
-          setSession(supabaseSession);
-        } else {
-          const localSession = getOrCreateSession(templateId, templateName);
-          setSession(localSession);
+        if (!user) {
+          return;
         }
+
+        const supabaseSession = await getOrCreateSessionInSupabase(
+          templateId,
+          templateName,
+          user.id
+        );
+        setSession(supabaseSession);
       } catch (error) {
         console.error('Error loading session:', error);
       } finally {
@@ -45,7 +38,7 @@ export const useDataSession = (templateId: string, templateName: string) => {
     };
 
     void loadSession();
-  }, [templateId, templateName, useSupabase, user?.id]);
+  }, [templateId, templateName, user]);
 
   const updateSessionName = useCallback(
     async (name: string) => {
@@ -54,12 +47,7 @@ export const useDataSession = (templateId: string, templateName: string) => {
       }
 
       try {
-        let updated: DataSession | null;
-        if (useSupabase) {
-          updated = await updateSessionNameInSupabase(session.id, name);
-        } else {
-          updated = updateSessionNameLocal(session.templateId, name);
-        }
+        const updated = await updateSessionNameInSupabase(session.id, name);
         if (updated) {
           setSession(updated);
         }
@@ -69,7 +57,7 @@ export const useDataSession = (templateId: string, templateName: string) => {
         return null;
       }
     },
-    [session, useSupabase]
+    [session]
   );
 
   return {

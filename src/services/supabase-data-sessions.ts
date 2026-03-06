@@ -6,8 +6,7 @@ import type { Database } from '../lib/database.types';
 type SessionRow = Database['public']['Tables']['data_sessions']['Row'];
 
 export async function getSessionForTemplateFromSupabase(
-  templateId: string,
-  userId: string
+  templateId: string
 ): Promise<DataSession | null> {
   const supabase = getSupabaseClient();
 
@@ -15,17 +14,17 @@ export async function getSessionForTemplateFromSupabase(
     .from('data_sessions')
     .select('*')
     .eq('template_id', templateId)
-    .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    if (error.code === 'PGRST116') {
-      return null;
-    }
     console.error('Error fetching session:', error);
     throw error;
+  }
+
+  if (!data) {
+    return null;
   }
 
   const row = data as unknown as SessionRow;
@@ -84,7 +83,7 @@ export async function getOrCreateSessionInSupabase(
   templateName: string,
   userId: string
 ): Promise<DataSession> {
-  const existing = await getSessionForTemplateFromSupabase(templateId, userId);
+  const existing = await getSessionForTemplateFromSupabase(templateId);
   if (existing) {
     return existing;
   }

@@ -4,18 +4,17 @@ const BUCKET_NAME = 'templates-docx';
 
 /**
  * Upload a docx file to Supabase Storage
- * @param userId User ID for folder organization
  * @param templateId Template ID for file naming
  * @param docxBlob The docx file as a Blob
  * @returns The storage path
  */
 export async function uploadDocx(
-  userId: string,
+  _userId: string,
   templateId: string,
   docxBlob: Blob
 ): Promise<string> {
   const supabase = getSupabaseClient();
-  const path = `${userId}/${templateId}.docx`;
+  const path = `templates/${templateId}.docx`;
 
   const { error } = await supabase.storage
     .from(BUCKET_NAME)
@@ -71,18 +70,17 @@ export async function deleteDocx(path: string): Promise<void> {
 }
 
 /**
- * Delete all docx files for a user
- * @param userId User ID
+ * Delete all shared docx files
  */
-export async function deleteUserDocxFiles(userId: string): Promise<void> {
+export async function deleteUserDocxFiles(): Promise<void> {
   const supabase = getSupabaseClient();
 
   const { data: files } = await supabase.storage
     .from(BUCKET_NAME)
-    .list(userId);
+    .list('templates');
 
   if (files && files.length > 0) {
-    const paths = files.map((f) => `${userId}/${f.name}`);
+    const paths = files.map((f) => `templates/${f.name}`);
     await supabase.storage.from(BUCKET_NAME).remove(paths);
   }
 }

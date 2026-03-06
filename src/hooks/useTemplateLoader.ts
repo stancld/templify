@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Template } from '../types';
-import { loadTemplateWithBlob } from '../services/storage';
 import { getTemplateById } from '../services/supabase-storage';
-import { useAuth } from './useAuth';
 
 export const useTemplateLoader = (templateId: string | undefined) => {
-  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
   const [template, setTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
 
   useEffect(() => {
     if (!templateId) {
@@ -24,13 +19,7 @@ export const useTemplateLoader = (templateId: string | undefined) => {
         setLoading(true);
         setError(null);
 
-        let loaded: Template | null;
-
-        if (useSupabase) {
-          loaded = await getTemplateById(templateId);
-        } else {
-          loaded = loadTemplateWithBlob(templateId);
-        }
+        const loaded = await getTemplateById(templateId);
 
         if (!loaded) {
           setError('Template not found');
@@ -46,7 +35,7 @@ export const useTemplateLoader = (templateId: string | undefined) => {
     };
 
     void loadTemplate();
-  }, [templateId, useSupabase]);
+  }, [templateId]);
 
   return { template, loading, error };
 };

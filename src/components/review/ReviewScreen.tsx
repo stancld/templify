@@ -14,8 +14,6 @@ import { FieldConnector } from '../editor/FieldConnector';
 import { useDocumentGenerator } from '../../hooks/useDocumentGenerator';
 import { useDataSession } from '../../hooks/useDataSessions';
 import { useTemplateLoader } from '../../hooks/useTemplateLoader';
-import { useAuth } from '../../hooks/useAuth';
-import { getDataRowsForSession } from '../../services/data-rows';
 import { getDataRowsForSessionFromSupabase } from '../../services/supabase-data-rows';
 import { pluralize } from '../../utils/text';
 import { DataRow } from '../../types';
@@ -23,7 +21,6 @@ import { DataRow } from '../../types';
 export const ReviewScreen: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
-  const { user, isSupabaseEnabled, isAuthenticated } = useAuth();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeFieldId, setActiveFieldId] = useState<string | null>(null);
@@ -35,8 +32,6 @@ export const ReviewScreen: React.FC = () => {
   const [dataRows, setDataRows] = useState<DataRow[]>([]);
   const [dataRowsLoading, setDataRowsLoading] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
-
-  const useSupabase = isSupabaseEnabled && isAuthenticated && user;
 
   const { session, loading: sessionLoading } = useDataSession(
     templateId || '',
@@ -52,13 +47,7 @@ export const ReviewScreen: React.FC = () => {
     const loadDataRows = async () => {
       try {
         setDataRowsLoading(true);
-        let rows: DataRow[];
-
-        if (useSupabase) {
-          rows = await getDataRowsForSessionFromSupabase(session.id);
-        } else {
-          rows = getDataRowsForSession(session.id);
-        }
+        const rows: DataRow[] = await getDataRowsForSessionFromSupabase(session.id);
 
         if (rows.length === 0) {
           setDataError('No data rows found');
@@ -74,7 +63,7 @@ export const ReviewScreen: React.FC = () => {
     };
 
     void loadDataRows();
-  }, [session?.id, useSupabase]);
+  }, [session?.id]);
 
   const { documents, isGenerating, progress, error: genError, generate, downloadSingle, downloadAll } =
     useDocumentGenerator();
