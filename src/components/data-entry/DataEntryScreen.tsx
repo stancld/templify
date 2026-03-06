@@ -7,11 +7,13 @@ import { EditableSessionTitle } from './EditableSessionTitle';
 import { useDataRows } from '../../hooks/useDataRows';
 import { useDataSession } from '../../hooks/useDataSessions';
 import { useTemplateLoader } from '../../hooks/useTemplateLoader';
+import { useAuth } from '../../hooks/useAuth';
 import { pluralize } from '../../utils/text';
 
 export const DataEntryScreen: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   const { template, loading: templateLoading, error: templateError } = useTemplateLoader(templateId);
 
@@ -113,15 +115,17 @@ export const DataEntryScreen: React.FC = () => {
                 <span>Clear All</span>
               </button>
             )}
-            <button
-              onClick={handleGenerateDocuments}
-              disabled={rows.length === 0}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
-            >
-              <FileText size={18} />
-              <span>Generate Documents</span>
-              <ArrowRight size={18} />
-            </button>
+            {isAdmin && (
+              <button
+                onClick={handleGenerateDocuments}
+                disabled={rows.length === 0}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-primary text-white rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+              >
+                <FileText size={18} />
+                <span>Generate Documents</span>
+                <ArrowRight size={18} />
+              </button>
+            )}
           </div>
         </div>
       </header>

@@ -53,7 +53,7 @@ function App() {
               <Route
                 path="/review/:templateId"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['admin']}>
                     <ReviewScreen />
                   </ProtectedRoute>
                 }
